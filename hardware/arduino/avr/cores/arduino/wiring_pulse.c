@@ -25,6 +25,17 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
+uint16_t __attribute__((optimize("O3"))) count_pulse(uint8_t port, uint8_t bit, uint8_t stateMask, uint16_t maxloops)
+{
+	uint16_t tmp = 0;
+	while ((*portInputRegister(port) & bit) == stateMask) {
+		if (tmp++ == maxloops) {
+			return 0;
+		}
+	}
+	return (tmp);
+}
+
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
  * to 3 minutes in length, but must be called at least a few dozen microseconds
@@ -53,17 +64,19 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	while ((*portInputRegister(port) & bit) != stateMask)
 		if (numloops++ == maxloops)
 			return 0;
-	
-	// wait for the pulse to stop
-	while ((*portInputRegister(port) & bit) == stateMask) {
-		if (numloops++ == maxloops)
-			return 0;
-		width++;
-	}
 
-	// convert the reading to microseconds. The loop has been determined
-	// to be 20 clock cycles long and have about 16 clocks between the edge
-	// and the start of the loop. There will be some error introduced by
-	// the interrupt handlers.
-	return clockCyclesToMicroseconds(width * 21 + 16); 
+#if 1
+	width = countPulseASM(port, bit, maxloops);
+	return width;
+	//return clockCyclesToMicroseconds(width * 12);
+	//return clockCyclesToMicroseconds(width * 24);
+#else
+    unsigned long start = micros();
+    // wait for the pulse to stop
+    while ((*portInputRegister(port) & bit) == stateMask) {
+        if (numloops++ == maxloops)
+            return 0;
+    }
+    return micros() - start;
+#endif
 }
