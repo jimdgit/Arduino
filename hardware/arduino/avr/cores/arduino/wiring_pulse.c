@@ -86,7 +86,7 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 
 #if 1
 	width = countPulseASM(*portInputRegister(port), bit, maxloops, stateMask);
-	return clockCyclesToMicroseconds(width * 11);
+	return clockCyclesToMicroseconds(width * 11 + 16);
 #else
     unsigned long start = micros();
     // wait for the pulse to stop
