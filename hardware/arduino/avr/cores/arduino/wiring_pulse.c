@@ -25,10 +25,15 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
+uint16_t (*countPulseASM)(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
+
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
  * to 3 minutes in length, but must be called at least a few dozen microseconds
- * before the start of the pulse. */
+ * before the start of the pulse.
+ *
+ * This function performs better with short pulses in noInterrupt() context
+ */
 unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 {
 	// cache the port and bit of the pin in order to speed up the
@@ -38,11 +43,28 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	uint8_t port = digitalPinToPort(pin);
 	uint8_t stateMask = (state ? bit : 0);
 	unsigned long width = 0; // keep initialization out of time critical area
-	
+
+	switch (port) {
+		case 2:
+			//portB
+			countPulseASM = &countPulseASM_B;
+			break;
+		case 3:
+			//portC
+			countPulseASM = &countPulseASM_C;
+			break;
+		case 4:
+			//portD
+			countPulseASM = &countPulseASM_D;
+			break;
+		default:
+			return 0;
+	}
+
 	// convert the timeout from microseconds to a number of times through
 	// the initial loop; it takes 16 clock cycles per iteration.
 	unsigned long numloops = 0;
-	unsigned long maxloops = microsecondsToClockCycles(timeout) / 16;
+	unsigned long maxloops = microsecondsToClockCycles(timeout);
 	
 	// wait for any previous pulse to end
 	while ((*portInputRegister(port) & bit) == stateMask)
@@ -53,17 +75,7 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	while ((*portInputRegister(port) & bit) != stateMask)
 		if (numloops++ == maxloops)
 			return 0;
-	
-	// wait for the pulse to stop
-	while ((*portInputRegister(port) & bit) == stateMask) {
-		if (numloops++ == maxloops)
-			return 0;
-		width++;
-	}
 
-	// convert the reading to microseconds. The loop has been determined
-	// to be 20 clock cycles long and have about 16 clocks between the edge
-	// and the start of the loop. There will be some error introduced by
-	// the interrupt handlers.
-	return clockCyclesToMicroseconds(width * 21 + 16); 
+	width = countPulseASM(*portInputRegister(port), bit, maxloops, stateMask);
+	return clockCyclesToMicroseconds(width * 11 + 16);
 }
