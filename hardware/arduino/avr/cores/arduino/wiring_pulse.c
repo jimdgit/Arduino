@@ -25,7 +25,9 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
-uint16_t __attribute__((optimize("O3"))) count_pulse(uint8_t port, uint8_t bit, uint8_t stateMask, uint16_t maxloops)
+uint16_t (*countPulseASM)(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
+
+uint16_t __attribute__((optimize("O0"))) count_pulse(uint8_t port, uint8_t bit, uint8_t stateMask, uint16_t maxloops)
 {
 	uint16_t tmp = 0;
 	while ((*portInputRegister(port) & bit) == stateMask) {
@@ -49,11 +51,28 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	uint8_t port = digitalPinToPort(pin);
 	uint8_t stateMask = (state ? bit : 0);
 	unsigned long width = 0; // keep initialization out of time critical area
-	
+
+	switch (port) {
+		case 2:
+			//portB
+			countPulseASM = &countPulseASM_B;
+			break;
+		case 3:
+			//portC
+			countPulseASM = &countPulseASM_C;
+			break;
+		case 4:
+			//portD
+			countPulseASM = &countPulseASM_D;
+			break;
+		default:
+			return 0;
+	}
+
 	// convert the timeout from microseconds to a number of times through
 	// the initial loop; it takes 16 clock cycles per iteration.
 	unsigned long numloops = 0;
-	unsigned long maxloops = microsecondsToClockCycles(timeout) / 16;
+	unsigned long maxloops = microsecondsToClockCycles(timeout);
 	
 	// wait for any previous pulse to end
 	while ((*portInputRegister(port) & bit) == stateMask)
@@ -66,10 +85,8 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 			return 0;
 
 #if 1
-	width = countPulseASM(port, bit, maxloops);
-	return width;
-	//return clockCyclesToMicroseconds(width * 12);
-	//return clockCyclesToMicroseconds(width * 24);
+	width = countPulseASM(*portInputRegister(port), bit, maxloops, stateMask);
+	return clockCyclesToMicroseconds(width * 11);
 #else
     unsigned long start = micros();
     // wait for the pulse to stop
