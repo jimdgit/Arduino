@@ -1,8 +1,8 @@
 /*
-  wiring_pulse.c - pulseIn() function
+  wiring_pulse.s - pulseInASM() function in different flavours
   Part of Arduino - http://www.arduino.cc/
 
-  Copyright (c) 2005-2006 David A. Mellis
+  Copyright (c) 2014 Martino Facchin
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -18,43 +18,92 @@
   Public License along with this library; if not, write to the
   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
   Boston, MA  02111-1307  USA
-
-  $Id: wiring.c 248 2007-02-03 15:36:30Z mellis $
 */
 
 #include <avr/io.h>
 
-.global countPulseASM
+.global countPulseASM_B
+.global countPulseASM_C
+.global countPulseASM_D
 
 .section .text
 
-countPulseASM:
-push	r16      
-push	r17      
-push	r28      
-push	r29
-//clear r16:r17
-mov r16, r24
-mov r17, r25
+countPulseASM_B:
+push	r17
 mov r24,r1
 mov r25,r1
-loop:
+loop_b:
 adiw r24, 1
 cp r24, r20
 cpc r25, r21
-breq return_zero
-sbic PIND-0x20, 7
-//sbic r16, r22
-rjmp loop
-ret_delay:
-rjmp exit
-return_zero:
+breq return_zero_b
+//check the pin state to be consistent with the mask
+in r17, PINB-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_b
+//sbic PINB-0x20, 7
+//rjmp loop
+ret_belay_b:
+rjmp exit_b
+return_zero_b:
 mov r24,r1
 mov r25,r1
-exit:
-pop	r29 
-pop	r28 
-pop	r17 
-pop	r16 
-ret     
+exit_b:
+pop	r17
+ret
 
+
+countPulseASM_C:
+push	r17
+mov r24,r1
+mov r25,r1
+loop_c:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_c
+//check the pin state to be consistent with the mask
+in r17, PINC-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_c
+//sbic PINC-0x20, 7
+//rjmp loop
+ret_celay_c:
+rjmp exit_c
+return_zero_c:
+mov r24,r1
+mov r25,r1
+exit_c:
+pop	r17
+ret
+
+
+countPulseASM_D:
+push	r17
+mov r24,r1
+mov r25,r1
+loop_d:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_d
+//check the pin state to be consistent with the mask
+in r17, PIND-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_d
+//sbic PIND-0x20, 7
+//rjmp loop
+ret_delay_d:
+rjmp exit_d
+return_zero_d:
+mov r24,r1
+mov r25,r1
+exit_d:
+pop	r17
+ret
