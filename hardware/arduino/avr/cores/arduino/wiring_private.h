@@ -43,7 +43,6 @@ extern "C"{
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-uint16_t countPulseASM_A(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
 uint16_t countPulseASM_B(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
 uint16_t countPulseASM_C(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
 uint16_t countPulseASM_D(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
