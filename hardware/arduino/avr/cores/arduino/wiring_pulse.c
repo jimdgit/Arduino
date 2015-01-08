@@ -25,6 +25,19 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
+//include PORT similar to the ones defined in Arduino.h
+#define PA 1
+#define PB 2
+#define PC 3
+#define PD 4
+#define PE 5
+#define PF 6
+#define PG 7
+#define PH 8
+#define PJ 10
+#define PK 11
+#define PL 12
+
 uint16_t (*countPulseASM)(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
 
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
@@ -62,9 +75,9 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	}
 
 	// convert the timeout from microseconds to a number of times through
-	// the initial loop; it takes 16 clock cycles per iteration.
+	// the initial loop; it takes 11 clock cycles per iteration.
 	unsigned long numloops = 0;
-	unsigned long maxloops = microsecondsToClockCycles(timeout);
+	unsigned long maxloops = microsecondsToClockCycles(timeout)/11;
 	
 	// wait for any previous pulse to end
 	while ((*portInputRegister(port) & bit) == stateMask)
