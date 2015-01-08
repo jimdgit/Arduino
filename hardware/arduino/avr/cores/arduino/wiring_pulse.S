@@ -57,7 +57,7 @@ ret
 
 
 countPulseASM_B:
-push	r17
+push r17
 mov r24,r1
 mov r25,r1
 loop_b:
@@ -73,18 +73,18 @@ cpi r17, 0
 breq loop_b
 //sbic PINB-0x20, 7
 //rjmp loop
-ret_belay_b:
+ret_delay_b:
 rjmp exit_b
 return_zero_b:
 mov r24,r1
 mov r25,r1
 exit_b:
-pop	r17
+pop r17
 ret
 
 
 countPulseASM_C:
-push	r17
+push r17
 mov r24,r1
 mov r25,r1
 loop_c:
@@ -100,18 +100,18 @@ cpi r17, 0
 breq loop_c
 //sbic PINC-0x20, 7
 //rjmp loop
-ret_celay_c:
+ret_delay_c:
 rjmp exit_c
 return_zero_c:
 mov r24,r1
 mov r25,r1
 exit_c:
-pop	r17
+pop r17
 ret
 
 
 countPulseASM_D:
-push	r17
+push r17
 mov r24,r1
 mov r25,r1
 loop_d:
@@ -133,5 +133,5 @@ return_zero_d:
 mov r24,r1
 mov r25,r1
 exit_d:
-pop	r17
+pop r17
 ret
