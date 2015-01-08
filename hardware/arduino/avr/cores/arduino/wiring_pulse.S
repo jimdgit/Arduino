@@ -22,11 +22,39 @@
 
 #include <avr/io.h>
 
+.global countPulseASM_A
 .global countPulseASM_B
 .global countPulseASM_C
 .global countPulseASM_D
 
 .section .text
+
+countPulseASM_A:
+push r17
+mov r24,r1
+mov r25,r1
+loop_a:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_a
+//check the pin state to be consistent with the mask
+in r17, PINA-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_a
+//sbic PINA-0x20, 7
+//rjmp loop
+ret_delay_a:
+rjmp exit_a
+return_zero_a:
+mov r24,r1
+mov r25,r1
+exit_a:
+pop r17
+ret
+
 
 countPulseASM_B:
 push	r17
