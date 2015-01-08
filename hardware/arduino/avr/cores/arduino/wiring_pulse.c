@@ -58,15 +58,19 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	unsigned long width = 0; // keep initialization out of time critical area
 
 	switch (port) {
-		case 2:
+		case PA:
+			//portA
+			countPulseASM = &countPulseASM_A;
+			break;
+		case PB:
 			//portB
 			countPulseASM = &countPulseASM_B;
 			break;
-		case 3:
+		case PC:
 			//portC
 			countPulseASM = &countPulseASM_C;
 			break;
-		case 4:
+		case PD:
 			//portD
 			countPulseASM = &countPulseASM_D;
 			break;
