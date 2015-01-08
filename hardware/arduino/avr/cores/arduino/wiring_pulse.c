@@ -74,6 +74,17 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 			//portD
 			countPulseASM = &countPulseASM_D;
 			break;
+#if defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__)
+		case PE:
+			//portE
+			countPulseASM = &countPulseASM_E;
+		case PF:
+			//portF
+			countPulseASM = &countPulseASM_F;
+		case PG:
+			//portG
+			countPulseASM = &countPulseASM_G;
+#endif
 		default:
 			return 0;
 	}

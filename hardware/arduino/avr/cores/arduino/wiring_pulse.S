@@ -135,3 +135,90 @@ mov r25,r1
 exit_d:
 pop r17
 ret
+
+
+#if defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__)
+
+.global countPulseASM_E
+.global countPulseASM_F
+.global countPulseASM_G
+
+countPulseASM_E:
+push r17
+mov r24,r1
+mov r25,r1
+loop_e:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_e
+//check the pin state to be consistent with the mask
+in r17, PINE-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_e
+//sbic PINE-0x20, 7
+//rjmp loop
+ret_delay_e:
+rjmp exit_e
+return_zero_e:
+mov r24,r1
+mov r25,r1
+exit_e:
+pop r17
+ret
+
+countPulseASM_F:
+push r17
+mov r24,r1
+mov r25,r1
+loop_f:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_f
+//check the pin state to be consistent with the mask
+in r17, PINF-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_f
+//sbic PINF-0x20, 7
+//rjmp loop
+ret_delay_f:
+rjmp exit_f
+return_zero_f:
+mov r24,r1
+mov r25,r1
+exit_f:
+pop r17
+ret
+
+countPulseASM_G:
+push r17
+mov r24,r1
+mov r25,r1
+loop_g:
+adiw r24, 1
+cp r24, r20
+cpc r25, r21
+breq return_zero_g
+//check the pin state to be consistent with the mask
+in r17, PING-0x20
+eor r17, r18
+and r17, r22
+cpi r17, 0
+breq loop_g
+//sbic PING-0x20, 7
+//rjmp loop
+ret_delay_g:
+rjmp exit_g
+return_zero_g:
+mov r24,r1
+mov r25,r1
+exit_g:
+pop r17
+ret
+
+#endif
