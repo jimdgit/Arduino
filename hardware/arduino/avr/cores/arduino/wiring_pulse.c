@@ -38,7 +38,7 @@
 #define PK 11
 #define PL 12
 
-uint16_t (*countPulseASM)(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
+uint32_t (*countPulseASM)(const uint8_t bit, uint8_t state, uint32_t maxloops);
 
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
@@ -88,7 +88,7 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	// convert the timeout from microseconds to a number of times through
 	// the initial loop; it takes 11 clock cycles per iteration.
 	unsigned long numloops = 0;
-	unsigned long maxloops = microsecondsToClockCycles(timeout)/11;
+	unsigned long maxloops = microsecondsToClockCycles(timeout)/15;
 	
 	// wait for any previous pulse to end
 	while ((*portInputRegister(port) & bit) == stateMask)
@@ -100,8 +100,8 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 		if (numloops++ == maxloops)
 			return 0;
 
-	width = countPulseASM(*portInputRegister(port), bit, maxloops, stateMask);
-	return clockCyclesToMicroseconds(width * 11 + 16);
+	width = countPulseASM(bit, stateMask, maxloops);
+	return clockCyclesToMicroseconds(width * 15 + 30);
 }
 
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH

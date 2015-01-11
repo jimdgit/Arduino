@@ -43,14 +43,14 @@ extern "C"{
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-uint16_t countPulseASM_B(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
-uint16_t countPulseASM_C(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
-uint16_t countPulseASM_D(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
+uint32_t countPulseASM_B(const uint8_t bit, uint8_t state, uint32_t maxloops);
+uint32_t countPulseASM_C(const uint8_t bit, uint8_t state, uint32_t maxloops);
+uint32_t countPulseASM_D(const uint8_t bit, uint8_t state, uint32_t maxloops);
 
 #if defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__)
-uint16_t countPulseASM_E(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
-uint16_t countPulseASM_F(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
-uint16_t countPulseASM_G(const uint8_t port, const uint8_t bit, uint16_t maxloops, uint8_t state);
+uint32_t countPulseASM_E(const uint8_t bit, uint8_t state, uint32_t maxloops);
+uint32_t countPulseASM_F(const uint8_t bit, uint8_t state, uint32_t maxloops);
+uint32_t countPulseASM_G(const uint8_t bit, uint8_t state, uint32_t maxloops);
 #endif
 
 #define EXTERNAL_INT_0 0
