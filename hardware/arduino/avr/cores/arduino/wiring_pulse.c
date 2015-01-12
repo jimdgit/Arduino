@@ -25,7 +25,7 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
-//include PORT similar to the ones defined in Arduino.h
+//include PORT as the ones defined in Arduino.h
 #define PA 1
 #define PB 2
 #define PC 3
@@ -100,7 +100,7 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 		if (numloops++ == maxloops)
 			return 0;
 
-	width = countPulseASM(bit, stateMask, maxloops);
+	width = countPulseASM(bit, stateMask, (maxloops - numloops));
 	return clockCyclesToMicroseconds(width * 15 + 30);
 }
 
