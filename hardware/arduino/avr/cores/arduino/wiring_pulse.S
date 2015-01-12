@@ -22,344 +22,102 @@
 
 #include <avr/io.h>
 
-.global countPulseASM_B
-.global countPulseASM_C
-.global countPulseASM_D
-
-.section .text
+#if 0	// commented version, unusable for macro expansion
 
 // bit is r25-24, state is r23-r22, timeout is r21-r18
 // these register do not need to be restored
 // save r24 and r22 to r16,r17 for further use
 // r25-r22 are used to store width and must be restored
 
-countPulseASM_B:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_B:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_B
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PINB-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_B
-// jump to exit_B
-rjmp exit_B
-return_zero_B:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_B:
-//restore registers
-pop r17
-pop r16
-pop r15
+#define countPulseASM_gen(X)  								 \
+countPulseASM_##X:										$	 \
+push r17			; 	save r17-r15					$	 \
+push r16												$	 \
+push r15												$	 \
+mov r16, r24		; set r16 to r24 and r17 to r22     $    \
+mov r17, r22		; r17 is now state                  $    \
+mov r25,r1       	; zero r25-r22                      $    \
+mov r24,r1												$	 \
+mov r23,r1                                              $    \
+mov r22,r1                                              $    \
+loop_##X:            ; start loop                       $    \
+subi r22, 255        ; increment width                  $    \
+sbci r23, 255                                           $    \
+sbci r24, 255                                           $    \
+sbci r25, 255                                           $    \
+cp r22, r18          ; compare width with timeout       $    \
+cpc r23, r19                                            $    \
+cpc r24, r20                                            $    \
+cpc r25, r21                                            $    \
+breq return_zero_##X  ; if equal, return 0              $    \
+in r26, PIN##X - 0x20 ; save port state to unused r26   $    \
+eor r26, r17     	  ; xor with state                  $    \
+and r26, r16          ; and with bit                    $    \
+cpi r26, 0            ; compare with zero               $    \
+breq loop_##X         ; if equal, continue looping      $    \
+rjmp exit_##X                                           $    \
+return_zero_##X:                                        $    \
+mov r22,r1            ; return 0 - timeout reached      $    \
+mov r23,r1                                              $    \
+mov r24,r1                                              $    \
+mov r25,r1												$	 \
+exit_##X:                                               $    \
+pop r17													$    \
+pop r16													$    \
+pop r15													$    \
 ret
 
+#endif
 
-countPulseASM_C:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_C:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_C
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PINC-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_C
-// jump to exit_C
-rjmp exit_C
-return_zero_C:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_C:
-//restore registers
-pop r17
-pop r16
-pop r15
+#define countPulseASM_gen(X)	.global countPulseASM_##X	$\
+countPulseASM_##X:	$\
+push r17				$\
+push r16				$\
+push r15				$\
+mov r16, r24			$\
+mov r17, r22			$\
+mov r25, r1				$\
+mov r24, r1				$\
+mov r23, r1				$\
+mov r22, r1				$\
+loop_##X:				$\
+subi r22, 255			$\
+sbci r23, 255			$\
+sbci r24, 255			$\
+sbci r25, 255			$\
+cp r22, r18				$\
+cpc r23, r19			$\
+cpc r24, r20			$\
+cpc r25, r21			$\
+breq return_zero_##X	$\
+in r26, PIN##X - 0x20	$\
+eor r26, r17			$\
+and r26, r16			$\
+cpi r26, 0				$\
+breq loop_##X			$\
+rjmp exit_##X			$\
+return_zero_##X:		$\
+mov r22, r1				$\
+mov r23, r1				$\
+mov r24, r1				$\
+mov r25, r1				$\
+exit_##X:				$\
+pop r17					$\
+pop r16					$\
+pop r15					$\
 ret
 
+.section .text
 
-countPulseASM_D:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_D:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_D
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PIND-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_D
-// jump to exit_D
-rjmp exit_D
-return_zero_D:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_D:
-//restore registers
-pop r17
-pop r16
-pop r15
-ret
+countPulseASM_gen(B)
+countPulseASM_gen(C)
+countPulseASM_gen(D)
 
 
 #if defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__)
 
-.global countPulseASM_E
-.global countPulseASM_F
-.global countPulseASM_G
-
-countPulseASM_E:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_E:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_E
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PINE-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_E
-// jump to exit_E
-rjmp exit_E
-return_zero_E:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_E:
-//restore registers
-pop r17
-pop r16
-pop r15
-ret
-
-
-countPulseASM_F:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_F:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_F
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PINF-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_F
-// jump to exit_F
-rjmp exit_F
-return_zero_F:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_F:
-//restore registers
-pop r17
-pop r16
-pop r15
-ret
-
-
-countPulseASM_G:
-// save r17-r15
-push r17
-push r16
-push r15
-// set r16 to r24 and r17 to r22
-mov r16, r24		; r16 is now bit
-mov r17, r22		; r17 is now state
-// zero r25-r22
-mov r25,r1
-mov r24,r1
-mov r23,r1
-mov r22,r1
-// start loop
-loop_G:
-// increment width
-subi r22, 255
-sbci r23, 255
-sbci r24, 255
-sbci r25, 255
-// compare width with timeout
-cp r22, r18
-cpc r23, r19
-cpc r24, r20
-cpc r25, r21
-// if equal, return 0
-breq return_zero_G
-// check the pin state to be consistent with the mask
-// save port state to unused r26
-in r26, PING-0x20
-// xor with state
-eor r26, r17
-// and with bit
-and r26, r16
-// compare with zero
-cpi r26, 0
-// if equal, continue looping
-breq loop_G
-// jump to exit_G
-rjmp exit_G
-return_zero_G:
-// return 0 - timeout reached
-mov r22,r1
-mov r23,r1
-mov r24,r1
-mov r25,r1
-exit_G:
-//restore registers
-pop r17
-pop r16
-pop r15
-ret
+countPulseASM_gen(E)
+countPulseASM_gen(F)
+countPulseASM_gen(G)
 
 #endif
