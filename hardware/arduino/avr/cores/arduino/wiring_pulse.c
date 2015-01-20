@@ -25,21 +25,6 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
-//include PORT as the ones defined in Arduino.h
-#define PA 1
-#define PB 2
-#define PC 3
-#define PD 4
-#define PE 5
-#define PF 6
-#define PG 7
-#define PH 8
-#define PJ 10
-#define PK 11
-#define PL 12
-
-uint32_t (*countPulseASM)(const uint8_t bit, uint8_t state, uint32_t maxloops);
-
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
  * to 3 minutes in length, but must be called at least a few dozen microseconds
@@ -57,38 +42,10 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 	uint8_t stateMask = (state ? bit : 0);
 	unsigned long width = 0; // keep initialization out of time critical area
 
-	switch (port) {
-		case PB:
-			//portB
-			countPulseASM = &countPulseASM_B;
-			break;
-		case PC:
-			//portC
-			countPulseASM = &countPulseASM_C;
-			break;
-		case PD:
-			//portD
-			countPulseASM = &countPulseASM_D;
-			break;
-#if defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__)
-		case PE:
-			//portE
-			countPulseASM = &countPulseASM_E;
-		case PF:
-			//portF
-			countPulseASM = &countPulseASM_F;
-		case PG:
-			//portG
-			countPulseASM = &countPulseASM_G;
-#endif
-		default:
-			return 0;
-	}
-
 	// convert the timeout from microseconds to a number of times through
-	// the initial loop; it takes 11 clock cycles per iteration.
+	// the initial loop; it takes approximately 24 clock cycles per iteration. (compiler dependant)
 	unsigned long numloops = 0;
-	unsigned long maxloops = microsecondsToClockCycles(timeout)/15;
+	unsigned long maxloops = microsecondsToClockCycles(timeout)/24;
 	
 	// wait for any previous pulse to end
 	while ((*portInputRegister(port) & bit) == stateMask)
@@ -100,8 +57,8 @@ unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
 		if (numloops++ == maxloops)
 			return 0;
 
-	width = countPulseASM(bit, stateMask, (maxloops - numloops));
-	return clockCyclesToMicroseconds(width * 15 + 30);
+	width = countPulseASM(bit, stateMask, (maxloops - numloops), portInputRegister(port));
+	return clockCyclesToMicroseconds(width * 17 + 32);
 }
 
 /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
