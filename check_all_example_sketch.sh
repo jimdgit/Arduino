@@ -33,6 +33,11 @@ echo `git log | head -1` >> $RESULT_FILE
 
 IFS=', ' read -a avr_board_array <<< "$AVR_BOARDS"
 
+cd "$HOME_DIR/build/"
+ant clean
+ant
+ant run
+
 for board in "${avr_board_array[@]}"
 do
 
