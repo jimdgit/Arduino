@@ -86,20 +86,20 @@ void BridgeClass::begin() {
 
 bool BridgeClass::isOk() {
   // check if bridge connections is OK
-  uint8_t cmd[] = {'X','X'};
+  uint8_t cmd[] = {'Q','I'};
 
-  uint8_t rxbuff[] = {0,0}; // length 2 is needed because transfer will truncate to rxlen
+  uint8_t rxbuff[] = {0};
 
   // try 2 times
   uint8_t _max_retries = max_retries;
   max_retries = 2;
 
   dropAll();
-  int rxbytes = transfer(cmd, 2, rxbuff, 2);
+  int rxbytes = transfer(cmd, 2, rxbuff, 1);
 
   max_retries = _max_retries;
 
-  // expected response is of length 1 and contains 2
+  // expected response is of length 1 and contains 2 #cfr: YunBridge/bridge/packet.py
   if (rxbytes == 1 && rxbuff[0] == 2)
       return true;
   else
