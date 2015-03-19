@@ -13,9 +13,7 @@ compile_board() {
 #$1 board
 #$2 log_file_basename
 
-echo "==========================" >> $2_$1
-echo "Starting with board $1" >> $2_$1
-echo "==========================" >> $2_$1
+echo " $1" >> $2_$1
 
 local file
 for file in `find $AVR_LIB_DIRS | grep "\.ino" | grep -v "inoflag"`
@@ -29,9 +27,9 @@ do
 	FLASH=`cat /tmp/$FILENAME$board.tmp | grep program | cut -f3 -d" "`
 	RAM=`cat /tmp/$FILENAME$board.tmp | grep dynamic | cut -f4 -d" "`
 	if (($RESULT == 0)); then
-		echo "PASSED $FLASH $RAM" >> $2_$1
+		echo "PASS $FLASH $RAM" >> $2_$1
 	else
-		echo "FAILED $RESULT" >> $2_$1
+		echo "FAIL $RESULT" >> $2_$1
 	fi
 done
 }
@@ -109,10 +107,34 @@ wait
 cat "$RESULT_FILE"_* >> $RESULT_FILE
 
 #analysis
-PASSED_T=`cat $RESULT_FILE | grep PASSED | wc -l`
-FAILED_T=`cat $RESULT_FILE | grep FAILED | wc -l`
+PASSED_T=`cat $RESULT_FILE | grep PASS | wc -l`
+FAILED_T=`cat $RESULT_FILE | grep FAIL | wc -l`
 PASS_PERC=`echo "$PASSED_T * 100 / ($PASSED_T + $FAILED_T) " | bc`
-echo "TOTAL PASSED: $PASSED_T  TOTAL FAILED: $FAILED_T  ($PASS_PERC %)"
+echo "TOTAL PASS: $PASSED_T  TOTAL FAILED: $FAILED_T  ($PASS_PERC %)"
 END_TIME=`date +%s`
 TOTAL_TIME=`echo "$END_TIME - $START_TIME" | bc`
 echo "Finished in $TOTAL_TIME seconds"
+
+echo "" > sketch_list_$DATE
+cat "$RESULT_FILE"_uno | grep ino >> sketch_list_$DATE
+for files in `ls "$RESULT_FILE"_*`;
+do
+	cat $files | grep -v ino > "$files"_pv
+	board=`ls $files | cut -f 3 -d "_"`
+	rm "$board"_lastest 0sketch_list_lastest
+	ln -s "$files"_pv "$board"_lastest
+	ln -s sketch_list_$DATE 0sketch_list_lastest
+done
+
+SKETCH_COUNT=`cat 0sketch_list_lastest | wc -l`
+i=0
+while [ $i -lt $SKETCH_COUNT ]
+	do
+	for files in `ls "$HOME_DIR/autotest/"*lastest*`
+		do
+		LINE=$(sed -n "${i}p" $files)
+		echo -n "$LINE;" >> /tmp/test_csv
+		done
+	echo "" >> /tmp/test_csv
+	let i=i+1
+done
