@@ -1,47 +1,47 @@
 #!/bin/sh
 
-active_jobs=0
-
-compile_board() {
-#args:
-#$1 board
-#$2 libs
-#$3 log_file_basename
-
-let active_jobs=active_jobs+1
-echo "==========================" >> $3_$1
-echo "Starting with board $1" >> $3_$1
-echo "==========================" >> $3_$1
-
-local file
-for file in `find $2 | grep "\.ino" | grep -v "inoflag"`
-do
-	#divide tests into $CPU_COUNT works
-	`$HOME_DIR/build/linux/work/arduino --board arduino:avr:$1 --verify $file > /dev/null 2>&1`
-	local RESULT=$?
-	echo "$file <-> $board in progress"
-	FILENAME=`basename $file`
-	if (($RESULT == 0)); then
-		echo "PASSED: $FILENAME" >> $3_$1
-	else
-		echo "ERROR $RESULT: $FILENAME" >> $3_$1
-	fi
-done
-let active_jobs=active_jobs-1
-}
-
 HOME_DIR=`pwd`
 LIB_DIRS="$HOME_DIR/libraries/ $HOME_DIR/build/shared/examples/"
 AVR_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/avr/libraries/"
 SAM_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/sam/libraries/"
 
+active_jobs=0
+
+compile_board() {
+#args:
+#$1 board
+#$2 log_file_basename
+
+echo "==========================" >> $2_$1
+echo "Starting with board $1" >> $2_$1
+echo "==========================" >> $2_$1
+
+local file
+for file in `find $AVR_LIB_DIRS | grep "\.ino" | grep -v "inoflag"`
+do
+	FILENAME=`basename $file`
+	echo $FILENAME >> $2_$1
+	#divide tests into $CPU_COUNT works
+	`$HOME_DIR/build/linux/work/arduino --board arduino:avr:$1 --verify $file 2> /dev/null 1> /tmp/$FILENAME$board.tmp`
+	local RESULT=$?
+	echo "$file <-> $board in progress"
+	FLASH=`cat /tmp/$FILENAME$board.tmp | grep program | cut -f3 -d" "`
+	RAM=`cat /tmp/$FILENAME$board.tmp | grep dynamic | cut -f4 -d" "`
+	if (($RESULT == 0)); then
+		echo "PASSED $FLASH $RAM" >> $2_$1
+	else
+		echo "FAILED $RESULT" >> $2_$1
+	fi
+done
+}
+
 AVR_BOARDS="uno, diecimila, mega, nano, leonardo, yun, megaADK, micro, esplora, mini, ethernet, fio, bt, LilyPadUSB, lilypad, pro, atmegang, robotControl, robotMotor"
 
 SAM_BOARDS="arduino_due_x"
 
-git reset HEAD --hard
+#git reset HEAD --hard
 #git clean -dxf
-git checkout master
+#git checkout master
 #git pull origin master
 
 mkdir "$HOME_DIR/autotest/"
@@ -65,9 +65,19 @@ for board in "${avr_board_array[@]}"
 do
 	echo "active_jobs: $active_jobs"
 	if [ $active_jobs -lt $CPU_NUM ]; then
-		compile_board $board $AVR_LIB_DIRS $RESULT_FILE &
+		let active_jobs=active_jobs+1
+		compile_board $board $RESULT_FILE &
 	else
-		sleep 10
+		wait
+		active_jobs=0
 	fi
 done
 
+#merge files!
+cat $RESULT_FILE_* >> $RESULT_FILE
+
+#analysis
+PASSED_T=`cat $RESULT_FILE | grep PASSED | wc -l`
+FAILED_T=`cat $RESULT_FILE | grep FAILED | wc -l`
+PASS_PERC=`echo "$PASSED_T * 100 / ($PASSED_T + $FAILED_T) " | bc`
+echo "TOTAL PASSED: $PASSED_T  TOTAL FAILED: $FAILED_T  ($PASS_PERC %)"
