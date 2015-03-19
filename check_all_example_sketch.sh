@@ -6,6 +6,7 @@ AVR_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/avr/libraries/"
 SAM_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/sam/libraries/"
 
 active_jobs=0
+START_TIME=`date +%s`
 
 compile_board() {
 #args:
@@ -105,10 +106,13 @@ done
 wait
 
 #merge files!
-cat $RESULT_FILE_* >> $RESULT_FILE
+cat "$RESULT_FILE"_* >> $RESULT_FILE
 
 #analysis
 PASSED_T=`cat $RESULT_FILE | grep PASSED | wc -l`
 FAILED_T=`cat $RESULT_FILE | grep FAILED | wc -l`
 PASS_PERC=`echo "$PASSED_T * 100 / ($PASSED_T + $FAILED_T) " | bc`
 echo "TOTAL PASSED: $PASSED_T  TOTAL FAILED: $FAILED_T  ($PASS_PERC %)"
+END_TIME=`date +%s`
+TOTAL_TIME=`echo "$END_TIME - $START_TIME" | bc`
+echo "Finished in $TOTAL_TIME seconds"
