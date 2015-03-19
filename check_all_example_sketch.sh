@@ -4,6 +4,12 @@ HOME_DIR=`pwd`
 LIB_DIRS="$HOME_DIR/libraries/ $HOME_DIR/build/shared/examples/"
 AVR_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/avr/libraries/"
 SAM_LIB_DIRS="$LIB_DIRS $HOME_DIR/hardware/arduino/sam/libraries/"
+AVR_BOARDS="uno, diecimila, mega, nano, leonardo, yun, megaADK, micro, esplora, mini, ethernet, fio, bt, LilyPadUSB, lilypad, pro, atmegang, robotControl, robotMotor"
+SAM_BOARDS="arduino_due_x"
+
+#test run: test 3 boards and 3 examples
+#AVR_BOARDS="uno, diecimila, esplora"
+#AVR_LIB_DIRS="$HOME_DIR/hardware/arduino/avr/libraries/EEPROM"
 
 active_jobs=0
 START_TIME=`date +%s`
@@ -33,10 +39,6 @@ do
 	fi
 done
 }
-
-AVR_BOARDS="uno, diecimila, mega, nano, leonardo, yun, megaADK, micro, esplora, mini, ethernet, fio, bt, LilyPadUSB, lilypad, pro, atmegang, robotControl, robotMotor"
-
-SAM_BOARDS="arduino_due_x"
 
 #git reset HEAD --hard
 #git clean -dxf
@@ -115,15 +117,16 @@ END_TIME=`date +%s`
 TOTAL_TIME=`echo "$END_TIME - $START_TIME" | bc`
 echo "Finished in $TOTAL_TIME seconds"
 
+cd $HOME_DIR/autotest/
 echo "" > sketch_list_$DATE
 cat "$RESULT_FILE"_uno | grep ino >> sketch_list_$DATE
+rm *_lastest
+ln -s sketch_list_$DATE 0sketch_list_lastest
 for files in `ls "$RESULT_FILE"_*`;
 do
 	cat $files | grep -v ino > "$files"_pv
 	board=`ls $files | cut -f 3 -d "_"`
-	rm "$board"_lastest 0sketch_list_lastest
 	ln -s "$files"_pv "$board"_lastest
-	ln -s sketch_list_$DATE 0sketch_list_lastest
 done
 
 SKETCH_COUNT=`cat 0sketch_list_lastest | wc -l`
@@ -133,8 +136,8 @@ while [ $i -lt $SKETCH_COUNT ]
 	for files in `ls "$HOME_DIR/autotest/"*lastest*`
 		do
 		LINE=$(sed -n "${i}p" $files)
-		echo -n "$LINE;" >> /tmp/test_csv
+		echo -n "$LINE;" >> $HOME_DIR/autotest/results_$DATE.csv
 		done
-	echo "" >> /tmp/test_csv
+	echo "" >> $HOME_DIR/autotest/results_$DATE.csv
 	let i=i+1
 done
