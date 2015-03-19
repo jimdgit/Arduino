@@ -54,12 +54,39 @@ echo `git log | head -1` >> $RESULT_FILE
 #EXAMPLES_INO=`find $AVR_LIB_DIRS | grep "\.ino" | grep -v "inoflag"`
 
 CPU_NUM=`nproc`
+HEADLESS=0
+
+while getopts ":v:b:" opt; do
+	case $opt in
+		b)
+			AVR_BOARDS=$OPTARG
+			echo "Compiling only for board $AVR_BOARDS"
+			;;
+		v)
+			if [ $OPTARG == "headless" ]; then
+				HEADLESS=1
+			fi
+			;;
+	esac
+done
 
 IFS=', ' read -a avr_board_array <<< "$AVR_BOARDS"
 
 cd "$HOME_DIR/build/"
 ant clean
 ant
+
+#need an X11 display
+if [ $HEADLESS -eq 1 ]; then
+	VNC_SERVER=`which vncserver`
+	if [ x$VNC_SERVER == "x" ]; then
+		echo "Please install vnc4server"
+		echo "sudo apt-get install vnc4server"
+	else
+		vncserver :1001
+		export DISPLAY=localhost:1001
+	fi
+fi
 
 for board in "${avr_board_array[@]}"
 do
@@ -69,9 +96,13 @@ do
 		compile_board $board $RESULT_FILE &
 	else
 		wait
-		active_jobs=0
+		compile_board $board $RESULT_FILE &
+		active_jobs=1
 	fi
 done
+
+#wait for all commands to complete
+wait
 
 #merge files!
 cat $RESULT_FILE_* >> $RESULT_FILE
