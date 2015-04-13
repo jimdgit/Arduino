@@ -16,7 +16,8 @@
 ** SOFTWARE.  
 */
 
-#include "USBAPI.h"
+#include "PluggableUSB.h"
+#include "HID.h"
 
 #if defined(USBCON)
 #ifdef HID_ENABLED
@@ -40,6 +41,12 @@ Keyboard_ Keyboard;
 #define RAWHID_USAGE		0x0C00
 #define RAWHID_TX_SIZE 64
 #define RAWHID_RX_SIZE 64
+
+static u8 HID_INTERFACE;
+static u8 HID_FIRST_ENDPOINT;
+static u8 HID_ENDPOINT_INT;
+
+static PUSBCallbacks cb;
 
 extern const u8 _hidReportDescriptor[] PROGMEM;
 const u8 _hidReportDescriptor[] = {
@@ -126,8 +133,8 @@ const u8 _hidReportDescriptor[] = {
 #endif
 };
 
-extern const HIDDescriptor _hidInterface PROGMEM;
-const HIDDescriptor _hidInterface =
+extern HIDDescriptor _hidInterface;
+HIDDescriptor _hidInterface =
 {
 	D_INTERFACE(HID_INTERFACE,1,3,0,0),
 	D_HIDREPORT(sizeof(_hidReportDescriptor)),
@@ -146,12 +153,16 @@ u8 _hid_idle = 1;
 int WEAK HID_GetInterface(u8* interfaceNum)
 {
 	interfaceNum[0] += 1;	// uses 1
-	return USB_SendControl(TRANSFER_PGM,&_hidInterface,sizeof(_hidInterface));
+	return USB_SendControl(0,&_hidInterface,sizeof(_hidInterface));
 }
 
-int WEAK HID_GetDescriptor(int /* i */)
+int WEAK HID_GetDescriptor(int t)
 {
-	return USB_SendControl(TRANSFER_PGM,_hidReportDescriptor,sizeof(_hidReportDescriptor));
+	if (HID_REPORT_DESCRIPTOR_TYPE == t) {
+		return USB_SendControl(0,_hidReportDescriptor,sizeof(_hidReportDescriptor));
+	} else {
+		return 0;
+	}
 }
 
 void WEAK HID_SendReport(u8 id, const void* data, int len)
@@ -160,39 +171,69 @@ void WEAK HID_SendReport(u8 id, const void* data, int len)
 	USB_Send(HID_TX | TRANSFER_RELEASE,data,len);
 }
 
-bool WEAK HID_Setup(Setup& setup)
+bool WEAK HID_Setup(Setup& setup, u8 i)
 {
-	u8 r = setup.bRequest;
-	u8 requestType = setup.bmRequestType;
-	if (REQUEST_DEVICETOHOST_CLASS_INTERFACE == requestType)
-	{
-		if (HID_GET_REPORT == r)
+	if (HID_INTERFACE != i) {
+		return false
+	} else {
+		u8 r = setup.bRequest;
+		u8 requestType = setup.bmRequestType;
+		if (REQUEST_DEVICETOHOST_CLASS_INTERFACE == requestType)
 		{
+			if (HID_GET_REPORT == r)
+			{
 			//HID_GetReport();
-			return true;
-		}
-		if (HID_GET_PROTOCOL == r)
-		{
+				return true;
+			}
+			if (HID_GET_PROTOCOL == r)
+			{
 			//Send8(_hid_protocol);	// TODO
-			return true;
+				return true;
+			}
 		}
-	}
-	
-	if (REQUEST_HOSTTODEVICE_CLASS_INTERFACE == requestType)
-	{
-		if (HID_SET_PROTOCOL == r)
+		
+		if (REQUEST_HOSTTODEVICE_CLASS_INTERFACE == requestType)
 		{
-			_hid_protocol = setup.wValueL;
-			return true;
-		}
+			if (HID_SET_PROTOCOL == r)
+			{
+				_hid_protocol = setup.wValueL;
+				return true;
+			}
 
-		if (HID_SET_IDLE == r)
-		{
-			_hid_idle = setup.wValueL;
-			return true;
+			if (HID_SET_IDLE == r)
+			{
+				_hid_idle = setup.wValueL;
+				return true;
+			}
 		}
+		return false;
 	}
-	return false;
+}
+
+// to be called by begin(), will trigger USB disconnection and reconnection
+int HID_Plug(void)
+{
+	PUSBReturn ret;
+	int res;
+	cb.setup = HID_Setup;
+	cb.getInterface = HID_GetInterface;
+	cb.getDescriptor = HID_GetDescriptor;
+	cb.numEndpoints = 1;
+	cb.endpointType[0] = EP_TYPE_INTERRUPT_IN;
+	res = PUSBaddFunction(&cb, &ret);
+	HID_INTERFACE = ret.interface;
+	HID_FIRST_ENDPOINT = ret.firstEndpoint;
+	HID_ENDPOINT_INT = HID_FIRST_ENDPOINT;
+	return res;
+}
+
+HID_::HID_(void) :
+{
+}
+
+int HID_::begin(void)
+{
+	return HID_Plug();
 }
 
 //================================================================================

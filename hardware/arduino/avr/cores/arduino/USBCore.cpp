@@ -317,8 +317,8 @@ int USB_Send(u8 ep, const void* d, int len)
 	return r;
 }
 
-extern const u8 _initEndpoints[] PROGMEM;
-const u8 _initEndpoints[] = 
+extern u8 _initEndpoints[];
+u8 _initEndpoints[] = 
 {
 	0,
 	
@@ -328,8 +328,14 @@ const u8 _initEndpoints[] =
 	EP_TYPE_BULK_IN,			// CDC_ENDPOINT_IN
 #endif
 
-#ifdef HID_ENABLED
-	EP_TYPE_INTERRUPT_IN		// HID_ENDPOINT_INT
+#ifdef PLUGGABLE_USB_ENABLED
+	//allocate 6 endpoints and remove const so they can be changed by the user
+	0,
+	0,
+	0,
+	0,
+	0,
+	0
 #endif
 };
 
@@ -352,7 +358,7 @@ void InitEndpoints()
 	{
 		UENUM = i;
 		UECONX = 1;
-		UECFG0X = pgm_read_byte(_initEndpoints+i);
+		UECFG0X = _initEndpoints[i];
 		UECFG1X = EP_DOUBLE_64;
 	}
 	UERST = 0x7E;	// And reset them
@@ -370,9 +376,8 @@ bool ClassInterfaceRequest(Setup& setup)
 		return CDC_Setup(setup);
 #endif
 
-#ifdef HID_ENABLED
-	if (HID_INTERFACE == i)
-		return HID_Setup(setup);
+#ifdef PLUGGABLE_USB_ENABLED
+	return PUSB_Setup(setup, i);
 #endif
 	return false;
 }
@@ -445,15 +450,14 @@ int USB_RecvControl(void* d, int len)
 
 int SendInterfaces()
 {
-	int total = 0;
 	u8 interfaces = 0;
 
 #ifdef CDC_ENABLED
-	total = CDC_GetInterface(&interfaces);
+	CDC_GetInterface(&interfaces);
 #endif
 
-#ifdef HID_ENABLED
-	total += HID_GetInterface(&interfaces);
+#ifdef PLUGGABLE_USB_ENABLED
+	PUSB_GetInterface(&interfaces);
 #endif
 
 	return interfaces;
@@ -482,14 +486,17 @@ u8 _cdcComposite = 0;
 static
 bool SendDescriptor(Setup& setup)
 {
+	int8_t ret;
 	u8 t = setup.wValueH;
 	if (USB_CONFIGURATION_DESCRIPTOR_TYPE == t)
 		return SendConfiguration(setup.wLength);
 
 	InitControl(setup.wLength);
-#ifdef HID_ENABLED
-	if (HID_REPORT_DESCRIPTOR_TYPE == t)
-		return HID_GetDescriptor(t);
+#ifdef PLUGGABLE_USB_ENABLED
+	ret = PUSB_GetDescriptor(t);
+	if (ret != 0) {
+		return (ret > 0 ? true : false);
+	}
 #endif
 
 	const u8* desc_addr = 0;
