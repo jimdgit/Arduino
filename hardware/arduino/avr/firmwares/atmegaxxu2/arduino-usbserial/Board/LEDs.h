@@ -43,11 +43,6 @@
 			extern "C" {
 		#endif
 
-	/* Preprocessor Checks: */
-		#if !defined(INCLUDE_FROM_LEDS_H)
-			#error Do not include this file directly. Include LUFA/Drivers/Board/LEDS.h instead.
-		#endif
-
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** LED mask for the first LED on the board. */

@@ -58,7 +58,7 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 {
 	.Header                 = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
 		
-	.USBSpecification       = VERSION_BCD(01.10),
+	.USBSpecification       = VERSION_BCD(1,1,0),
 	.Class                  = 0x02,
 	.SubClass               = 0x00,
 	.Protocol               = 0x00,
@@ -72,7 +72,7 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 		
 	.ManufacturerStrIndex   = 0x01,
 	.ProductStrIndex        = 0x02,
-	.SerialNumStrIndex      = USE_INTERNAL_SERIAL,
+	.SerialNumStrIndex      = 0x03,
 		
 	.NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS
 };
@@ -94,7 +94,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
 				
-			.ConfigAttributes       = (USB_CONFIG_ATTR_BUSPOWERED | USB_CONFIG_ATTR_SELFPOWERED),
+			.ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED), 
 			
 			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(100)
 		},
@@ -139,15 +139,15 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.Data                   = {0x00, 0x01}
 		},
 
-	.CDC_NotificationEndpoint = 
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
-			
-			.EndpointAddress        = (ENDPOINT_DESCRIPTOR_DIR_IN | CDC_NOTIFICATION_EPNUM),
-			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = CDC_NOTIFICATION_EPSIZE,
-			.PollingIntervalMS      = 0xFF
-		},
+        .CDC_NotificationEndpoint =
+                {
+                        .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+                        .EndpointAddress        = CDC_NOTIFICATION_EPADDR,
+                        .Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+                        .EndpointSize           = CDC_NOTIFICATION_EPSIZE,
+                        .PollingIntervalMS      = 0xFF
+                },
 
 	.CDC_DCI_Interface = 
 		{
@@ -169,7 +169,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 			
-			.EndpointAddress        = (ENDPOINT_DESCRIPTOR_DIR_OUT | CDC_RX_EPNUM),
+			.EndpointAddress        = CDC_RX_EPADDR,
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -179,7 +179,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 			
-			.EndpointAddress        = (ENDPOINT_DESCRIPTOR_DIR_IN | CDC_TX_EPNUM),
+			.EndpointAddress        = CDC_TX_EPADDR,
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -226,6 +226,13 @@ const USB_Descriptor_String_t PROGMEM ProductString =
 	
 };
 
+USB_Descriptor_String_t SerialString =
+{
+	.Header                 = {.Size = USB_STRING_LEN(8), .Type = DTYPE_String},
+
+	.UnicodeString          = L"-changeme"
+};
+
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
  *  documentation) by the application code so that the address and size of a requested descriptor can be given
  *  to the USB library. When the device receives a Get Descriptor request on the control endpoint, this function
@@ -234,13 +241,19 @@ const USB_Descriptor_String_t PROGMEM ProductString =
  */
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
                                     const uint8_t wIndex,
-                                    void** const DescriptorAddress)
+                                    const void** const DescriptorAddress,
+				    uint8_t* const DescriptorMemorySpace)
 {
 	const uint8_t  DescriptorType   = (wValue >> 8);
 	const uint8_t  DescriptorNumber = (wValue & 0xFF);
 
 	void*    Address = NULL;
 	uint16_t Size    = NO_DESCRIPTOR;
+
+	*DescriptorMemorySpace = MEMSPACE_FLASH;
+
+	//use the first SerialString.Header.Size eeprom address to containt serial number
+	eeprom_read_block(SerialString.UnicodeString, (uint8_t *)0x0, SerialString.Header.Size);
 
 	switch (DescriptorType)
 	{
@@ -266,6 +279,11 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 				case 0x02: 
 					Address = (void*)&ProductString;
 					Size    = pgm_read_byte(&ProductString.Header.Size);
+					break;
+				case 0x03:
+					Address = (void*)&SerialString;
+					Size    = SerialString.Header.Size;
+					*DescriptorMemorySpace = MEMSPACE_RAM;
 					break;
 			}
 			

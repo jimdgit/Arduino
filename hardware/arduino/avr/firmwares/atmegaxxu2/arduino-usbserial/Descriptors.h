@@ -40,26 +40,27 @@
 		#include <avr/pgmspace.h>
 
 		#include <LUFA/Drivers/USB/USB.h>
-		#include <LUFA/Drivers/USB/Class/CDC.h>
+                #include "Config/AppConfig.h"
 		
 	/* Product-specific definitions: */
 		#define ARDUINO_UNO_PID				0x0001
 		#define ARDUINO_MEGA2560_PID		0x0010
 
 	/* Macros: */
-		/** Endpoint number of the CDC device-to-host notification IN endpoint. */
-		#define CDC_NOTIFICATION_EPNUM         2
 
-		/** Endpoint number of the CDC device-to-host data IN endpoint. */
-		#define CDC_TX_EPNUM                   3	
+                /** Endpoint address of the CDC device-to-host notification IN endpoint. */
+                #define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 2)
 
-		/** Endpoint number of the CDC host-to-device data OUT endpoint. */
-		#define CDC_RX_EPNUM                   4	
+                /** Endpoint address of the CDC device-to-host data IN endpoint. */
+                #define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 3)
 
-		/** Size in bytes of the CDC device-to-host notification IN endpoint. */
-		#define CDC_NOTIFICATION_EPSIZE        8
+                /** Endpoint address of the CDC host-to-device data OUT endpoint. */
+                #define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 4)
 
-		/** Size in bytes of the CDC data IN and OUT endpoints. */
+                /** Size in bytes of the CDC device-to-host notification IN endpoint. */
+                #define CDC_NOTIFICATION_EPSIZE        8
+
+                /** Size in bytes of the CDC data IN and OUT endpoints. */
 		#define CDC_TXRX_EPSIZE                64	
 
 	/* Type Defines: */
@@ -82,7 +83,8 @@
 
 	/* Function Prototypes: */
 		uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
-		                                    const uint8_t wIndex,
-		                                    void** const DescriptorAddress) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
+						    const uint8_t wIndex,
+						    const void** const DescriptorAddress,
+						    uint8_t* const DescriptorMemorySpace) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
 
 #endif

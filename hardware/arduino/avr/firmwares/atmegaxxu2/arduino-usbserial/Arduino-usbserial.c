@@ -55,24 +55,30 @@ volatile struct
  *  within a device can be differentiated from one another.
  */
 USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
-	{
-		.Config = 
-			{
-				.ControlInterfaceNumber         = 0,
-
-				.DataINEndpointNumber           = CDC_TX_EPNUM,
-				.DataINEndpointSize             = CDC_TXRX_EPSIZE,
-				.DataINEndpointDoubleBank       = false,
-
-				.DataOUTEndpointNumber          = CDC_RX_EPNUM,
-				.DataOUTEndpointSize            = CDC_TXRX_EPSIZE,
-				.DataOUTEndpointDoubleBank      = false,
-
-				.NotificationEndpointNumber     = CDC_NOTIFICATION_EPNUM,
-				.NotificationEndpointSize       = CDC_NOTIFICATION_EPSIZE,
-				.NotificationEndpointDoubleBank = false,
-			},
-	};
+        {
+                .Config =
+                        {
+                                .ControlInterfaceNumber   = 0,
+                                .DataINEndpoint           =
+                                        {
+                                                .Address          = CDC_TX_EPADDR,
+                                                .Size             = CDC_TXRX_EPSIZE,
+                                                .Banks            = 1,
+                                        },
+                                .DataOUTEndpoint =
+                                        {
+                                                .Address          = CDC_RX_EPADDR,
+                                                .Size             = CDC_TXRX_EPSIZE,
+                                                .Banks            = 1,
+                                        },
+                                .NotificationEndpoint =
+                                        {
+                                                .Address          = CDC_NOTIFICATION_EPADDR,
+                                                .Size             = CDC_NOTIFICATION_EPSIZE,
+                                                .Banks            = 1,
+                                        },
+                        },
+        };
 
 /** Main program entry point. This routine contains the overall program flow, including initial
  *  setup of all components and the main program loop.
@@ -124,7 +130,7 @@ int main(void)
 		
 		/* Load the next byte from the USART transmit buffer into the USART */
 		if (!(RingBuffer_IsEmpty(&USBtoUSART_Buffer))) {
-		  Serial_TxByte(RingBuffer_Remove(&USBtoUSART_Buffer));
+		  Serial_SendByte(RingBuffer_Remove(&USBtoUSART_Buffer));
 		  	
 		  	LEDs_TurnOnLEDs(LEDMASK_RX);
 			PulseMSRemaining.RxLEDPulse = TX_RX_LED_PULSE_MS;

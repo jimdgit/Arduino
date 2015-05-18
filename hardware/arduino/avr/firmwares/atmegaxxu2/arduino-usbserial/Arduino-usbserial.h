@@ -43,6 +43,7 @@
 		#include <avr/power.h>
 
 		#include "Descriptors.h"
+                #include "Config/AppConfig.h"
 
 		#include "Lib/LightweightRingBuff.h"
 
@@ -50,7 +51,7 @@
 		#include <LUFA/Drivers/Board/LEDs.h>
 		#include <LUFA/Drivers/Peripheral/Serial.h>
 		#include <LUFA/Drivers/USB/USB.h>
-		#include <LUFA/Drivers/USB/Class/CDC.h>
+                #include <LUFA/Platform/Platform.h>
 		
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate TX activity. */
