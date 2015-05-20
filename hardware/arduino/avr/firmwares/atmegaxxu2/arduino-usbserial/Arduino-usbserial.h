@@ -1,24 +1,24 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2010.
-              
+     Copyright (C) Dean Camera, 2014.
+
   dean [at] fourwalledcubicle [dot] com
-      www.fourwalledcubicle.com
+           www.lufa-lib.org
 */
 
 /*
-  Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
-  Permission to use, copy, modify, distribute, and sell this 
+  Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
-  without fee, provided that the above copyright notice appear in 
+  without fee, provided that the above copyright notice appear in
   all copies and that both that the copyright notice and this
-  permission notice and warranty disclaimer appear in supporting 
-  documentation, and that the name of the author not be used in 
-  advertising or publicity pertaining to distribution of the 
+  permission notice and warranty disclaimer appear in supporting
+  documentation, and that the name of the author not be used in
+  advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -30,11 +30,11 @@
 
 /** \file
  *
- *  Header file for Arduino-usbserial.c.
+ *  Header file for USBtoSerial.c.
  */
 
-#ifndef _ARDUINO_USBSERIAL_H_
-#define _ARDUINO_USBSERIAL_H_
+#ifndef _USB_SERIAL_H_
+#define _USB_SERIAL_H_
 
 	/* Includes: */
 		#include <avr/io.h>
@@ -43,38 +43,36 @@
 		#include <avr/power.h>
 
 		#include "Descriptors.h"
-                #include "Config/AppConfig.h"
+		#include "Config/AppConfig.h"
 
-		#include "Lib/LightweightRingBuff.h"
-
-		#include <LUFA/Version.h>
 		#include <LUFA/Drivers/Board/LEDs.h>
 		#include <LUFA/Drivers/Peripheral/Serial.h>
+		#include <LUFA/Drivers/Misc/RingBuffer.h>
 		#include <LUFA/Drivers/USB/USB.h>
-                #include <LUFA/Platform/Platform.h>
-		
-	/* Macros: */
-		/** LED mask for the library LED driver, to indicate TX activity. */
-		#define LEDMASK_TX               LEDS_LED1
+		#include <LUFA/Platform/Platform.h>
 
-		/** LED mask for the library LED driver, to indicate RX activity. */
-		#define LEDMASK_RX               LEDS_LED2
-		
+	/* Macros: */
+		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
+		#define LEDMASK_USB_NOTREADY      LEDS_LED1
+
+		/** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
+		#define LEDMASK_USB_ENUMERATING  (LEDS_LED2 | LEDS_LED3)
+
+		/** LED mask for the library LED driver, to indicate that the USB interface is ready. */
+		#define LEDMASK_USB_READY        (LEDS_LED2 | LEDS_LED4)
+
 		/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-		#define LEDMASK_ERROR            (LEDS_LED1 | LEDS_LED2)
-		
-		/** LED mask for the library LED driver, to indicate that the USB interface is busy. */
-		#define LEDMASK_BUSY             (LEDS_LED1 | LEDS_LED2)		
-		
+		#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
+
 	/* Function Prototypes: */
 		void SetupHardware(void);
 
 		void EVENT_USB_Device_Connect(void);
 		void EVENT_USB_Device_Disconnect(void);
 		void EVENT_USB_Device_ConfigurationChanged(void);
-		void EVENT_USB_Device_UnhandledControlRequest(void);
-		
+		void EVENT_USB_Device_ControlRequest(void);
+
 		void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);
 		void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);		
+#endif
 
-#endif /* _ARDUINO_USBSERIAL_H_ */

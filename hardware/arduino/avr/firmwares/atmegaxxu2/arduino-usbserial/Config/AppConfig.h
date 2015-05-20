@@ -54,4 +54,8 @@
 
 	#define RECEIVE_BUFFER_FLUSH_MS        10
 
+  #define ARDUINO_MODEL_PID   0x0001
+  // Mega 2560 PID:
+  //#define ARDUINO_MODEL_PID   0x0010
+
 #endif

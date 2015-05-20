@@ -57,7 +57,7 @@
 //		#define NO_CLASS_DRIVER_AUTOFLUSH
 
 		/* General USB Driver Related Tokens: */
-		#define ORDERED_EP_CONFIG
+//		#define ORDERED_EP_CONFIG
 		#define USE_STATIC_OPTIONS               (USB_DEVICE_OPT_FULLSPEED | USB_OPT_REG_ENABLED | USB_OPT_AUTO_PLL)
 		#define USB_DEVICE_ONLY
 //		#define USB_HOST_ONLY
@@ -66,7 +66,6 @@
 //		#define NO_SOF_EVENTS
 
 		/* USB Device Mode Driver Related Tokens: */
-//		#define ARCH_HAS_MULTI_ADDRESS_SPACE
 //		#define USE_RAM_DESCRIPTORS
 //		#define USE_FLASH_DESCRIPTORS
 //		#define USE_EEPROM_DESCRIPTORS
@@ -80,12 +79,11 @@
 //		#define NO_DEVICE_SELF_POWER
 
 		/* USB Host Mode Driver Related Tokens: */
-//		#define HOST_STATE_AS_GPIOR              {Insert Value Here}
+//		#define HOST_STATE_AS_GPIOR              0
 //		#define USB_HOST_TIMEOUT_MS              {Insert Value Here}
 //		#define HOST_DEVICE_SETTLE_DELAY_MS	     {Insert Value Here}
 //		#define NO_AUTO_VBUS_MANAGEMENT
 //		#define INVERTED_VBUS_ENABLE_LINE
-
 
 	#else
 
