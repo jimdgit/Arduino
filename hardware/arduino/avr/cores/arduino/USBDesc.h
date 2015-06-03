@@ -17,6 +17,7 @@
 */
 
 #define CDC_ENABLED
+#define HID_ENABLED
 #define PLUGGABLE_USB_ENABLED
 
 

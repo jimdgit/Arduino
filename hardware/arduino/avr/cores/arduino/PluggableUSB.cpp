@@ -19,7 +19,7 @@
 #include "USBAPI.h"
 #include "PluggableUSB.h"
 
-#if defined(USBCON)
+#if defined(USBCON)	
 #ifdef PLUGGABLE_USB_ENABLED
 
 #define MAX_MODULES	6
@@ -30,27 +30,30 @@ static u8 firstEp = CDC_FIRST_ENDPOINT + CDC_ENPOINT_COUNT;
 static u8 lastIf = startIf;
 static u8 lastEp = firstEp;
 
-PUSBCallbacks* cbs[MAX_MODULES];
+extern u8 _initEndpoints[];
+
+PUSBCallbacks cbs[MAX_MODULES];
 u8 modules_count = 0;
 
 int PUSB_GetInterface(u8* interfaceNum)
 {
-	for (u8 i=0; i<MAX_MODULES; i++) {
-		cbs[i]->getInterface(interfaceNum);
+	for (u8 i=0; i<modules_count; i++) {
+		cbs[i].getInterface(interfaceNum);
 	}
 }
 
 int PUSB_GetDescriptor(int t)
 {
-	for (u8 i=0; i<MAX_MODULES; i++) {
-		cbs[i]->getDescriptor(interfaceNum);
+	for (u8 i=0; i<modules_count; i++) {
+		cbs[i].getDescriptor(t);
 	}
+	return 0;
 }
 
 bool PUSB_Setup(Setup& setup, u8 j)
 {
-	for (u8 i=0; i<MAX_MODULES; i++) {
-		cbs[i]->setup(interfaceNum, j);
+	for (u8 i=0; i<modules_count; i++) {
+		cbs[i].setup(setup, j);
 	}
 }
 
@@ -59,10 +62,10 @@ int PUSBaddFunction(PUSBCallbacks *cb, PUSBReturn *ret)
 	if (modules_count >= MAX_MODULES) {
 		return 0;
 	}
-	cbs[modules_count] = cb;
+	cbs[modules_count] = *cb;
 
-	ret.interfaceNum = lastIf;
-	ret.firstEndpoint = lastEp;
+	ret->interface = lastIf;
+	ret->firstEndpoint = lastEp;
 	lastIf++;
 	for ( u8 i = 0; i< cb->numEndpoints; i++) {
 		_initEndpoints[lastEp] = cb->endpointType[i];

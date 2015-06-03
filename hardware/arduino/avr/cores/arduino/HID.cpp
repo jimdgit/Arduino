@@ -28,6 +28,7 @@
 
 Mouse_ Mouse;
 Keyboard_ Keyboard;
+HID_ HID;
 
 //================================================================================
 //================================================================================
@@ -174,7 +175,7 @@ void WEAK HID_SendReport(u8 id, const void* data, int len)
 bool WEAK HID_Setup(Setup& setup, u8 i)
 {
 	if (HID_INTERFACE != i) {
-		return false
+		return false;
 	} else {
 		u8 r = setup.bRequest;
 		u8 requestType = setup.bmRequestType;
@@ -227,7 +228,7 @@ int HID_Plug(void)
 	return res;
 }
 
-HID_::HID_(void) :
+HID_::HID_(void)
 {
 }
 

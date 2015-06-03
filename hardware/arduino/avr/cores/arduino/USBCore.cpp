@@ -17,16 +17,9 @@
 */
 
 #include "USBAPI.h"
+#include "PluggableUSB.h"
 
 #if defined(USBCON)
-
-#define EP_TYPE_CONTROL				0x00
-#define EP_TYPE_BULK_IN				0x81
-#define EP_TYPE_BULK_OUT			0x80
-#define EP_TYPE_INTERRUPT_IN		0xC1
-#define EP_TYPE_INTERRUPT_OUT		0xC0
-#define EP_TYPE_ISOCHRONOUS_IN		0x41
-#define EP_TYPE_ISOCHRONOUS_OUT		0x40
 
 /** Pulse generation counters to keep track of the number of milliseconds remaining for each pulse type */
 #define TX_RX_LED_PULSE_MS 100
@@ -84,6 +77,9 @@ const DeviceDescriptor USB_DeviceDescriptor =
 
 const DeviceDescriptor USB_DeviceDescriptorA =
 	D_DEVICE(DEVICE_CLASS,0x00,0x00,64,USB_VID,USB_PID,0x100,IMANUFACTURER,IPRODUCT,0,1);
+
+const DeviceDescriptor USB_DeviceDescriptorB =
+	D_DEVICE(0xEF,0x02,0x01,64,USB_VID,USB_PID,0x100,IMANUFACTURER,IPRODUCT,0,1);
 
 //==================================================================
 //==================================================================
@@ -317,7 +313,6 @@ int USB_Send(u8 ep, const void* d, int len)
 	return r;
 }
 
-extern u8 _initEndpoints[];
 u8 _initEndpoints[] = 
 {
 	0,
@@ -330,12 +325,12 @@ u8 _initEndpoints[] =
 
 #ifdef PLUGGABLE_USB_ENABLED
 	//allocate 6 endpoints and remove const so they can be changed by the user
-	0,
-	0,
-	0,
-	0,
-	0,
-	0
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_OUT,
 #endif
 };
 
@@ -502,9 +497,7 @@ bool SendDescriptor(Setup& setup)
 	const u8* desc_addr = 0;
 	if (USB_DEVICE_DESCRIPTOR_TYPE == t)
 	{
-		if (setup.wLength == 8)
-			_cdcComposite = 1;
-		desc_addr = _cdcComposite ?  (const u8*)&USB_DeviceDescriptorA : (const u8*)&USB_DeviceDescriptor;
+		desc_addr = (const u8*)&USB_DeviceDescriptorB;
 	}
 	else if (USB_STRING_DESCRIPTOR_TYPE == t)
 	{

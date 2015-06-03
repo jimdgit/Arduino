@@ -119,7 +119,7 @@ extern Keyboard_ Keyboard;
 //================================================================================
 //  HID 'Driver'
 
-class HID_ :
+class HID_
 {
 private:
   int HID_Plug(void);
@@ -129,7 +129,7 @@ private:
 
 public:
   HID_(void);
-  void begin(void);
+  int begin(void);
 };
 extern HID_ HID;
 
