@@ -17,7 +17,6 @@
 */
 
 #define CDC_ENABLED
-#define HID_ENABLED
 #define PLUGGABLE_USB_ENABLED
 
 
@@ -27,14 +26,6 @@
 #else
 #define CDC_INTERFACE_COUNT	0
 #define CDC_ENPOINT_COUNT	0
-#endif
-
-#ifdef HID_ENABLED
-#define HID_INTERFACE_COUNT	1
-#define HID_ENPOINT_COUNT	1
-#else
-#define HID_INTERFACE_COUNT	0
-#define HID_ENPOINT_COUNT	0
 #endif
 
 #define CDC_ACM_INTERFACE	0	// CDC ACM

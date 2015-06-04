@@ -40,7 +40,7 @@ typedef struct
   u8 firstEndpoint;
 } PUSBReturn;
 
-int PUSBaddFunction(PUSBCallbacks *cb, PUSBReturn *ret);
+int PUSB_AddFunction(PUSBCallbacks *cb, PUSBReturn *ret);
 
 int PUSB_GetInterface(u8* interfaceNum);
 

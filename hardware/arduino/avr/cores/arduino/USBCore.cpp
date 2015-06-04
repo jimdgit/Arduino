@@ -34,6 +34,7 @@ extern const u8 STRING_PRODUCT[] PROGMEM;
 extern const u8 STRING_MANUFACTURER[] PROGMEM;
 extern const DeviceDescriptor USB_DeviceDescriptor PROGMEM;
 extern const DeviceDescriptor USB_DeviceDescriptorA PROGMEM;
+extern const DeviceDescriptor USB_DeviceDescriptorB PROGMEM;
 
 const u16 STRING_LANGUAGE[2] = {
 	(3<<8) | (2+2),
@@ -681,6 +682,10 @@ void USBDevice_::attach()
 	UDCON = 0;							// enable attach resistor
 	
 	TX_RX_LED_INIT;
+}
+
+extern "C" {
+void __attribute__ ((weak)) attachFunctionsToUSB(){}
 }
 
 void USBDevice_::detach()

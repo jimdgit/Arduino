@@ -57,12 +57,17 @@ int PUSB_GetDescriptor(int t)
 
 bool PUSB_Setup(Setup& setup, u8 j)
 {
+	bool ret = false;
 	for (u8 i=0; i<modules_count; i++) {
-		cbs[i].setup(setup, j);
+		ret = cbs[i].setup(setup, j);
+		if (ret == true) {
+			return ret;
+		}
 	}
+	return ret;
 }
 
-int PUSBaddFunction(PUSBCallbacks *cb, PUSBReturn *ret) 
+int PUSB_AddFunction(PUSBCallbacks *cb, PUSBReturn *ret) 
 {
 	if (modules_count >= MAX_MODULES) {
 		return 0;

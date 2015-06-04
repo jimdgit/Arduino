@@ -61,6 +61,9 @@ public:
 };
 extern USBDevice_ USBDevice;
 
+extern "C" {
+void attachFunctionsToUSB();
+}
 //================================================================================
 //================================================================================
 //	Serial over CDC (Serial1 is the physical port)
