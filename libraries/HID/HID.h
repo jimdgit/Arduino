@@ -121,22 +121,18 @@ extern Keyboard_ Keyboard;
 
 class HID_
 {
-private:
-  int HID_Plug(void);
-  void HID_SendReport(u8 id, const void* data, int len);
-  int HID_GetDescriptor(int t);
-  int HID_GetInterface(u8* interfaceNum);
-
 public:
   HID_(void);
   int begin(void);
 };
-extern HID_ HID;
 
-int   HID_GetInterface(uint8_t* interfaceNum);
-int   HID_GetDescriptor(int i);
-bool  HID_Setup(Setup& setup);
+int   HID_Plug(void);
+int   HID_GetInterface(u8* interfaceNum);
+int   HID_GetDescriptor(int t);
+bool  HID_Setup(Setup& setup, u8 i);
 void  HID_SendReport(uint8_t id, const void* data, int len);
+
+extern HID_ HID;
 
 typedef struct
 {

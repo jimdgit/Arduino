@@ -20,7 +20,6 @@
 #include "HID.h"
 
 #if defined(USBCON)
-#ifdef HID_ENABLED
 
 //#define RAWHID_ENABLED
 
@@ -154,13 +153,13 @@ u8 _hid_idle = 1;
 int WEAK HID_GetInterface(u8* interfaceNum)
 {
 	interfaceNum[0] += 1;	// uses 1
-	return USB_SendControl(0,&_hidInterface,sizeof(_hidInterface));
+	return USB_SendControl(TRANSFER_PGM,&_hidInterface,sizeof(_hidInterface));
 }
 
 int WEAK HID_GetDescriptor(int t)
 {
 	if (HID_REPORT_DESCRIPTOR_TYPE == t) {
-		return USB_SendControl(0,_hidReportDescriptor,sizeof(_hidReportDescriptor));
+		return USB_SendControl(TRANSFER_PGM,_hidReportDescriptor,sizeof(_hidReportDescriptor));
 	} else {
 		return 0;
 	}
@@ -216,12 +215,13 @@ int HID_Plug(void)
 {
 	PUSBReturn ret;
 	int res;
-	cb.setup = HID_Setup;
-	cb.getInterface = HID_GetInterface;
-	cb.getDescriptor = HID_GetDescriptor;
+
+	cb.setup = &HID_Setup;
+	cb.getInterface = &HID_GetInterface;
+	cb.getDescriptor = &HID_GetDescriptor;
 	cb.numEndpoints = 1;
 	cb.endpointType[0] = EP_TYPE_INTERRUPT_IN;
-	res = PUSBaddFunction(&cb, &ret);
+	res = PUSB_AddFunction(&cb, &ret);
 	HID_INTERFACE = ret.interface;
 	HID_FIRST_ENDPOINT = ret.firstEndpoint;
 	HID_ENDPOINT_INT = HID_FIRST_ENDPOINT;
@@ -554,7 +554,5 @@ size_t Keyboard_::write(uint8_t c)
 	release(c);            // Keyup
 	return p;              // just return the result of press() since release() almost always returns 1
 }
-
-#endif
 
 #endif /* if defined(USBCON) */

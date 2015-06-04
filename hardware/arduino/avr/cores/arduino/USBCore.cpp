@@ -325,12 +325,12 @@ u8 _initEndpoints[] =
 
 #ifdef PLUGGABLE_USB_ENABLED
 	//allocate 6 endpoints and remove const so they can be changed by the user
-	EP_TYPE_BULK_OUT,
-	EP_TYPE_BULK_OUT,
-	EP_TYPE_BULK_OUT,
-	EP_TYPE_BULK_OUT,
-	EP_TYPE_BULK_OUT,
-	EP_TYPE_BULK_OUT,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
 #endif
 };
 
@@ -349,7 +349,7 @@ void InitEP(u8 index, u8 type, u8 size)
 static
 void InitEndpoints()
 {
-	for (u8 i = 1; i < sizeof(_initEndpoints); i++)
+	for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 	{
 		UENUM = i;
 		UECONX = 1;
@@ -481,7 +481,7 @@ u8 _cdcComposite = 0;
 static
 bool SendDescriptor(Setup& setup)
 {
-	int8_t ret;
+	int ret;
 	u8 t = setup.wValueH;
 	if (USB_CONFIGURATION_DESCRIPTOR_TYPE == t)
 		return SendConfiguration(setup.wLength);
@@ -497,7 +497,9 @@ bool SendDescriptor(Setup& setup)
 	const u8* desc_addr = 0;
 	if (USB_DEVICE_DESCRIPTOR_TYPE == t)
 	{
-		desc_addr = (const u8*)&USB_DeviceDescriptorB;
+		if (setup.wLength == 8)
+			_cdcComposite = 1;
+		desc_addr = _cdcComposite ?  (const u8*)&USB_DeviceDescriptorB : (const u8*)&USB_DeviceDescriptor;
 	}
 	else if (USB_STRING_DESCRIPTOR_TYPE == t)
 	{
