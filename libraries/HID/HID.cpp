@@ -153,7 +153,7 @@ u8 _hid_idle = 1;
 int WEAK HID_GetInterface(u8* interfaceNum)
 {
 	interfaceNum[0] += 1;	// uses 1
-	return USB_SendControl(TRANSFER_PGM,&_hidInterface,sizeof(_hidInterface));
+	return USB_SendControl(0,&_hidInterface,sizeof(_hidInterface));
 }
 
 int WEAK HID_GetDescriptor(int t)
