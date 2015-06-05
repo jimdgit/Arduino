@@ -684,10 +684,6 @@ void USBDevice_::attach()
 	TX_RX_LED_INIT;
 }
 
-extern "C" {
-void __attribute__ ((weak)) attachFunctionsToUSB(){}
-}
-
 void USBDevice_::detach()
 {
 }

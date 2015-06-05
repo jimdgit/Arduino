@@ -27,8 +27,8 @@
 static u8 startIf = CDC_ACM_INTERFACE + CDC_INTERFACE_COUNT;
 static u8 firstEp = CDC_FIRST_ENDPOINT + CDC_ENPOINT_COUNT;
 
-static u8 lastIf = startIf;
-static u8 lastEp = firstEp;
+static u8 lastIf = CDC_ACM_INTERFACE + CDC_INTERFACE_COUNT;
+static u8 lastEp = CDC_FIRST_ENDPOINT + CDC_ENPOINT_COUNT;
 
 extern u8 _initEndpoints[];
 
@@ -62,21 +62,21 @@ bool PUSB_Setup(Setup& setup, u8 j)
 	return ret;
 }
 
-int PUSB_AddFunction(PUSBCallbacks *cb, PUSBReturn *ret) 
+int PUSB_AddFunction(PUSBCallbacks *cb, u8* interface) 
 {
 	if (modules_count >= MAX_MODULES) {
 		return 0;
 	}
 	cbs[modules_count] = *cb;
 
-	ret->interface = lastIf;
-	ret->firstEndpoint = lastEp;
+	*interface = lastIf;
 	lastIf++;
 	for ( u8 i = 0; i< cb->numEndpoints; i++) {
 		_initEndpoints[lastEp] = cb->endpointType[i];
 		lastEp++;
 	}
 	modules_count++;
+	return lastEp-1;
 	// restart USB layer???
 }
 

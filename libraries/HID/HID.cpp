@@ -133,13 +133,7 @@ const u8 _hidReportDescriptor[] = {
 #endif
 };
 
-extern HIDDescriptor _hidInterface;
-HIDDescriptor _hidInterface =
-{
-	D_INTERFACE(HID_INTERFACE,1,3,0,0),
-	D_HIDREPORT(sizeof(_hidReportDescriptor)),
-	D_ENDPOINT(USB_ENDPOINT_IN (HID_ENDPOINT_INT),USB_ENDPOINT_TYPE_INTERRUPT,0x40,0x01)
-};
+HIDDescriptor _hidInterface;
 
 //================================================================================
 //================================================================================
@@ -213,18 +207,26 @@ bool WEAK HID_Setup(Setup& setup, u8 i)
 // to be called by begin(), will trigger USB disconnection and reconnection
 int HID_Plug(void)
 {
-	PUSBReturn ret;
-	int res;
+	u8 interface;
+	u8 res;
 
 	cb.setup = &HID_Setup;
 	cb.getInterface = &HID_GetInterface;
 	cb.getDescriptor = &HID_GetDescriptor;
 	cb.numEndpoints = 1;
 	cb.endpointType[0] = EP_TYPE_INTERRUPT_IN;
-	res = PUSB_AddFunction(&cb, &ret);
-	HID_INTERFACE = ret.interface;
-	HID_FIRST_ENDPOINT = ret.firstEndpoint;
-	HID_ENDPOINT_INT = HID_FIRST_ENDPOINT;
+	res = PUSB_AddFunction(&cb, &interface);
+	HID_INTERFACE = interface;
+	HID_FIRST_ENDPOINT = res;
+	HID_ENDPOINT_INT = res;
+
+	_hidInterface =
+	{
+		D_INTERFACE(HID_INTERFACE,1,3,0,0),
+		D_HIDREPORT(sizeof(_hidReportDescriptor)),
+		D_ENDPOINT(USB_ENDPOINT_IN (HID_ENDPOINT_INT),USB_ENDPOINT_TYPE_INTERRUPT,0x40,0x01)
+	};
+
 	return res;
 }
 

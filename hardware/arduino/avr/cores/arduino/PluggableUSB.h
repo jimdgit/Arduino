@@ -40,13 +40,15 @@ typedef struct
   u8 firstEndpoint;
 } PUSBReturn;
 
-int PUSB_AddFunction(PUSBCallbacks *cb, PUSBReturn *ret);
+int PUSB_AddFunction(PUSBCallbacks *cb, u8 *interface);
 
 int PUSB_GetInterface(u8* interfaceNum);
 
 int PUSB_GetDescriptor(int t);
 
 bool PUSB_Setup(Setup& setup, u8 i);
+
+void PUSB_Begin();
 
 #endif
 
