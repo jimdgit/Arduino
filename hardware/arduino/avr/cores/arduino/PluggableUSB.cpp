@@ -38,9 +38,8 @@ u8 modules_count = 0;
 int PUSB_GetInterface(u8* interfaceNum)
 {
 	int ret = 0;
-	for (u8 i=0; i<modules_count && ret == 0; i++) {
+	for (u8 i=0; i<modules_count; i++) {
 		ret = cbs[i].getInterface(interfaceNum);
-		return ret;
 	}
 	return ret;
 }
@@ -50,7 +49,6 @@ int PUSB_GetDescriptor(int t)
 	int ret = 0;
 	for (u8 i=0; i<modules_count && ret == 0; i++) {
 		ret = cbs[i].getDescriptor(t);
-		return ret;
 	}
 	return ret;
 }
@@ -58,11 +56,8 @@ int PUSB_GetDescriptor(int t)
 bool PUSB_Setup(Setup& setup, u8 j)
 {
 	bool ret = false;
-	for (u8 i=0; i<modules_count; i++) {
+	for (u8 i=0; i<modules_count && ret == false; i++) {
 		ret = cbs[i].setup(setup, j);
-		if (ret == true) {
-			return ret;
-		}
 	}
 	return ret;
 }
