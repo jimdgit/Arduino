@@ -1,3 +1,6 @@
+#ifndef KEYBOARD_h
+#define KEYBOARD_h
+
 #if defined(_USING_HID)
 
 #error "Can only attach one submodule to HID module"
@@ -73,4 +76,5 @@ public:
 };
 extern Keyboard_ Keyboard;
 
+#endif
 #endif
