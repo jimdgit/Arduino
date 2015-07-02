@@ -33,7 +33,6 @@ extern u8 _initEndpoints[];
 static u8 modules_count = 0;
 
 static PUSBListNode* rootNode = NULL;
-static PUSBListNode* lastNode = NULL;
 
 int PUSB_GetInterface(u8* interfaceNum)
 {
@@ -76,9 +75,12 @@ int8_t PUSB_AddFunction(PUSBListNode *node, u8* interface)
 
 	if (modules_count == 0) {
 		rootNode = node;
-		lastNode = node;
 	} else {
-		lastNode->next = node;
+		PUSBListNode *current = rootNode;
+		while(current->next != NULL) {
+			current = current->next;
+		}
+		current->next = node;
 	}
 
 	*interface = lastIf;
