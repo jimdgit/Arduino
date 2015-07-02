@@ -1,32 +1,12 @@
 #if 1
 
-#include "HID.h"
 #include "Keyboard.h"
 
 //================================================================================
 //================================================================================
 //	Keyboard
 
-Keyboard_ Keyboard;
-
-Keyboard_::Keyboard_(void) 
-{
-}
-
-void Keyboard_::begin(void) 
-{
-}
-
-void Keyboard_::end(void) 
-{
-}
-
-void Keyboard_::sendReport(KeyReport* keys)
-{
-	HID.SendReport(2,keys,sizeof(KeyReport));
-}
-
-const u8 _hidReportDescriptor[] PROGMEM = {
+static const u8 _hidReportDescriptor[] PROGMEM = {
 
   //  Keyboard
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)  // 47
@@ -58,6 +38,29 @@ const u8 _hidReportDescriptor[] PROGMEM = {
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
     0xc0,                          // END_COLLECTION
 };
+
+Keyboard_::Keyboard_(void) 
+{
+	static HID_Descriptor cb = {
+		.length = sizeof(_hidReportDescriptor),
+		.descriptor = _hidReportDescriptor,
+	};
+	static HIDDescriptorListNode node(&cb);
+	HID.AppendDescriptor(&node);
+}
+
+void Keyboard_::begin(void)
+{
+}
+
+void Keyboard_::end(void)
+{
+}
+
+void Keyboard_::sendReport(KeyReport* keys)
+{
+	HID.SendReport(2,keys,sizeof(KeyReport));
+}
 
 extern
 const uint8_t _asciimap[128] PROGMEM;
@@ -196,9 +199,6 @@ const uint8_t _asciimap[128] =
 	0				// DEL
 };
 
-size_t getsizeof_hidReportDescriptor() {
-	return sizeof(_hidReportDescriptor);
-}
 
 uint8_t USBPutChar(uint8_t c);
 
@@ -299,5 +299,7 @@ size_t Keyboard_::write(uint8_t c)
 	release(c);            // Keyup
 	return p;              // just return the result of press() since release() almost always returns 1
 }
+
+Keyboard_ Keyboard;
 
 #endif
