@@ -1,6 +1,8 @@
 /*
-  IPAddress.h - Base class that provides IPAddress
-  Copyright (c) 2011 Adrian McEwen.  All right reserved.
+  HID.h
+
+  Copyright (c) 2015, Arduino LLC
+  Original code (pre-library): Copyright (c) 2011, Peter Barrett
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public

@@ -1,6 +1,6 @@
 /*
-  IPAddress.h - Base class that provides IPAddress
-  Copyright (c) 2011 Adrian McEwen.  All right reserved.
+  PluggableUSB.h
+  Copyright (c) 2015 Arduino LLC
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
