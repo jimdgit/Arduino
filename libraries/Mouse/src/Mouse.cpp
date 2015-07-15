@@ -1,6 +1,6 @@
-#if 1 //defined(USBCON)
-
 #include "Mouse.h"
+
+#if defined(_USING_HID)
 
 static const u8 _hidReportDescriptor[] PROGMEM = {
   
