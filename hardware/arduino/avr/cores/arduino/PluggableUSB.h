@@ -66,7 +66,7 @@ private:
   PUSBListNode* rootNode;
 };
 
-extern PluggableUSB_ PluggableUSB;
+PluggableUSB_& PluggableUSB();
 
 #endif
 
