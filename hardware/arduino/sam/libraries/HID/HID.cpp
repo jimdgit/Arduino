@@ -19,50 +19,27 @@
 #include "USB/PluggableUSB.h"
 #include "HID.h"
 
-HID_ HID;
+#if defined(USBCON)
 
-static uint8_t HID_ENDPOINT_INT;
-
-//================================================================================
-//================================================================================
-
-//	HID report descriptor
-
-#define LSB(_x) ((_x) & 0xFF)
-#define MSB(_x) ((_x) >> 8)
-
-#define RAWHID_USAGE_PAGE	0xFFC0
-#define RAWHID_USAGE		0x0C00
-#define RAWHID_TX_SIZE 64
-#define RAWHID_RX_SIZE 64
-
-static uint8_t HID_INTERFACE;
-
-HIDDescriptor _hidInterface;
-
-static HIDDescriptorListNode* rootNode = NULL;
-static uint8_t sizeof_hidReportDescriptor = 0;
-static uint8_t modules_count = 0;
-//================================================================================
-//================================================================================
-//	Driver
-
-uint8_t _hid_protocol = 1;
-uint8_t _hid_idle = 1;
-
-int HID_GetInterface(uint8_t* interfaceNum)
+HID_& HID()
 {
-	interfaceNum[0] += 1;	// uses 1
-	_hidInterface =
-	{
-		D_INTERFACE(HID_INTERFACE,1,3,0,0),
-		D_HIDREPORT(sizeof_hidReportDescriptor),
-		D_ENDPOINT(USB_ENDPOINT_IN (HID_ENDPOINT_INT),USB_ENDPOINT_TYPE_INTERRUPT,0x40,0x01)
-	};
-	return USBD_SendControl(0,&_hidInterface,sizeof(_hidInterface));
+	static HID_ obj;
+	return obj;
 }
 
-int HID_GetDescriptor(int8_t t)
+int HID_::getInterface(uint8_t* interfaceNum)
+{
+	interfaceNum[0] += 1;	// uses 1
+	hidInterface =
+	{
+		D_INTERFACE(interface(), 1, 3, 0, 0),
+		D_HIDREPORT(sizeof_hidReportDescriptor),
+		D_ENDPOINT(USB_ENDPOINT_IN(endpoint()), USB_ENDPOINT_TYPE_INTERRUPT, 0x40, 0x01)
+	};
+	return USBD_SendControl(0,&hidInterface,sizeof(hidInterface));
+}
+
+int HID_::getDescriptor(int8_t t)
 {
 	if (HID_REPORT_DESCRIPTOR_TYPE == t) {
 		HIDDescriptorListNode* current = rootNode;
@@ -89,7 +66,7 @@ void HID_::AppendDescriptor(HIDDescriptorListNode *node)
 		current->next = node;
 	}
 	modules_count++;
-	sizeof_hidReportDescriptor += node->length;
+	sizeof_hidReportDescriptor += (uint16_t)node->length;
 }
 
 void HID_::SendReport(uint8_t id, const void* data, int len)
@@ -100,12 +77,12 @@ void HID_::SendReport(uint8_t id, const void* data, int len)
 	p[0] = id;
 	for (uint32_t i=0; i<len; i++)
 		p[i+1] = d[i];
-	USBD_Send(HID_TX, p, len+1);
+	USBD_Send(endpoint(), p, len+1);
 }
 
-bool HID_Setup(USBSetup& setup, uint8_t i)
+bool HID_::setup(USBSetup& setup, uint8_t i)
 {
-	if (HID_INTERFACE != i) {
+	if (interface() != i) {
 		return false;
 	} else {
 		uint8_t r = setup.bRequest;
@@ -114,12 +91,12 @@ bool HID_Setup(USBSetup& setup, uint8_t i)
 		{
 			if (HID_GET_REPORT == r)
 			{
-			//HID_GetReport();
+				//HID_GetReport();
 				return true;
 			}
 			if (HID_GET_PROTOCOL == r)
 			{
-			//Send8(_hid_protocol);	// TODO
+				//Send8(protocol);	// TODO
 				return true;
 			}
 		}
@@ -128,13 +105,13 @@ bool HID_Setup(USBSetup& setup, uint8_t i)
 		{
 			if (HID_SET_PROTOCOL == r)
 			{
-				_hid_protocol = setup.wValueL;
+				protocol = setup.wValueL;
 				return true;
 			}
 
 			if (HID_SET_IDLE == r)
 			{
-				_hid_idle = setup.wValueL;
+				idle = setup.wValueL;
 				return true;
 			}
 		}
@@ -142,27 +119,17 @@ bool HID_Setup(USBSetup& setup, uint8_t i)
 	}
 }
 
-HID_::HID_(void)
+HID_::HID_(void) : PUSBListNode(1, 1, epType),
+                   rootNode(NULL), sizeof_hidReportDescriptor(0),
+                   modules_count(0), protocol(1), idle(1)
 {
-	static uint32_t endpointType[1];
-
-	endpointType[0] = EP_TYPE_INTERRUPT_IN;
-
-	static PUSBCallbacks cb = {
-		.setup = &HID_Setup,
-		.getInterface = &HID_GetInterface,
-		.getDescriptor = &HID_GetDescriptor,
-		.numEndpoints = 1,
-		.numInterfaces = 1,
-		.endpointType = endpointType,
-	};
-
-	static PUSBListNode node(&cb);
-
-	HID_ENDPOINT_INT = PUSB_AddFunction(&node, &HID_INTERFACE);
+	epType[0] = EP_TYPE_INTERRUPT_IN;
+	PluggableUSB().plug(this);
 }
 
 int HID_::begin(void)
 {
 	return 0;
 }
+
+#endif /* if defined(USBCON) */
