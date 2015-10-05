@@ -91,6 +91,8 @@
 #define USB_ENDPOINT_OUT(addr)                 ((addr) | 0x00)
 #define USB_ENDPOINT_IN(addr)                  ((addr) | 0x80)
 
+#define USB_ENDPOINTS 							7
+
 #define USB_ENDPOINT_TYPE_MASK                 0x03
 #define USB_ENDPOINT_TYPE_CONTROL              0x00
 #define USB_ENDPOINT_TYPE_ISOCHRONOUS          0x01

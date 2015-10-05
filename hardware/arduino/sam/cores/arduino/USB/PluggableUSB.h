@@ -25,30 +25,48 @@
 
 #if defined(USBCON)
 
-typedef struct __attribute__((packed))
-{
-  bool (*setup)(USBSetup& setup, uint8_t i);
-  int (*getInterface)(uint8_t* interfaceNum);
-  int (*getDescriptor)(int8_t t);
-  int8_t numEndpoints;
-  int8_t numInterfaces;
-  uint32_t *endpointType;
-} PUSBCallbacks;
-
 class PUSBListNode {
 public:
+  PUSBListNode(int8_t numEps, int8_t numIfs, uint32_t *epType) :
+    numEndpoints(numEps), numInterfaces(numIfs), endpointType(epType)
+  { }
+
+  inline uint8_t interface() const { return pluggedInterface; }
+  inline int8_t endpoint()   const { return pluggedEndpoint; }
+
+protected:
+  virtual bool setup(USBSetup& setup, uint8_t i) = 0;
+  virtual int getInterface(uint8_t* interfaceNum) = 0;
+  virtual int getDescriptor(int8_t t) = 0;
+
+  uint8_t pluggedInterface;
+  int8_t pluggedEndpoint;
+
+  const int8_t numEndpoints;
+  const int8_t numInterfaces;
+  const uint32_t *endpointType;
+
+public:
   PUSBListNode *next = NULL;
-  PUSBCallbacks *cb;
-  PUSBListNode(PUSBCallbacks *ncb) {cb = ncb;}
+
+  friend class PluggableUSB_;
 };
 
-int8_t PUSB_AddFunction(PUSBListNode *node, uint8_t *interface);
+class PluggableUSB_ {
+public:
+  PluggableUSB_();
+  bool plug(PUSBListNode *node);
+  int getInterface(uint8_t* interfaceNum);
+  int getDescriptor(int8_t t);
+  bool setup(USBSetup& setup, uint8_t i);
 
-int PUSB_GetInterface(uint8_t* interfaceNum);
+private:
+  uint8_t lastIf;
+  uint8_t lastEp;
+  PUSBListNode* rootNode;
+};
 
-int PUSB_GetDescriptor(int8_t t);
-
-bool PUSB_Setup(USBSetup& setup, uint8_t i);
+PluggableUSB_& PluggableUSB();
 
 #endif
 
