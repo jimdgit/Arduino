@@ -66,12 +66,10 @@ public class SerialDiscovery implements Discovery {
 
   @Override
   public void start() {
-    this.serialBoardsListerTimer = new Timer(SerialBoardsLister.class.getName());
-    new SerialBoardsLister(this).start(serialBoardsListerTimer);
+    new SerialBoardsLister(this).start();
   }
 
   @Override
   public void stop() {
-    this.serialBoardsListerTimer.purge();
   }
 }

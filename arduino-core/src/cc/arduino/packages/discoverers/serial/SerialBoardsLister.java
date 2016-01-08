@@ -38,20 +38,125 @@ import processing.app.debug.TargetBoard;
 
 import java.util.*;
 
-public class SerialBoardsLister extends TimerTask {
+import org.usb4java.Context;
+import org.usb4java.Device;
+import org.usb4java.DeviceDescriptor;
+import org.usb4java.HotplugCallback;
+import org.usb4java.HotplugCallbackHandle;
+import org.usb4java.LibUsb;
+import org.usb4java.LibUsbException;
+
+public class SerialBoardsLister extends Thread  {
 
   private final SerialDiscovery serialDiscovery;
+  private EventHandlingThread thread = new EventHandlingThread();
+  private HotplugCallbackHandle callbackHandle = new HotplugCallbackHandle();
+
+  static class EventHandlingThread extends Thread
+  {
+    /** If thread should abort. */
+    private volatile boolean abort;
+
+    /**
+     * Aborts the event handling thread.
+     */
+    public void abort()
+    {
+      this.abort = true;
+    }
+
+    @Override
+    public void run()
+    {
+      while (!this.abort)
+      {
+        // Let libusb handle pending events. This blocks until events
+        // have been handled, a hotplug callback has been deregistered
+        // or the specified time (in Microseconds) has passed.
+        int result = LibUsb.handleEventsTimeout(null, 10000);
+        if (result != LibUsb.SUCCESS)
+          throw new LibUsbException("Unable to handle events", result);
+      }
+    }
+  }
+
+  /**
+   * The hotplug callback handler
+   */
+  class Callback implements HotplugCallback
+  {
+    @Override
+    public int processEvent(Context context, Device device, int event,
+                            Object userData)
+    {
+      DeviceDescriptor descriptor = new DeviceDescriptor();
+      int result = LibUsb.getDeviceDescriptor(device, descriptor);
+      if (result != LibUsb.SUCCESS)
+        throw new LibUsbException("Unable to read device descriptor",
+          result);
+/*
+        System.out.format("%s: %04x:%04x%n",
+        event == LibUsb.HOTPLUG_EVENT_DEVICE_ARRIVED ? "Connected" :
+          "Disconnected",
+        descriptor.idVendor(), descriptor.idProduct());
+        refreshSerialList();
+*/
+      return 0;
+    }
+  }
 
   public SerialBoardsLister(SerialDiscovery serialDiscovery) {
     this.serialDiscovery = serialDiscovery;
   }
 
-  public void start(Timer timer) {
-    timer.schedule(this, 0, 1000);
+  public void kill() {
+    // Unregister the hotplug callback and stop the event handling thread
+    thread.abort();
+    LibUsb.hotplugDeregisterCallback(null, callbackHandle);
+    try {
+      thread.join();
+    } catch (InterruptedException e) {}
+
+    // Deinitialize the libusb context
+    LibUsb.exit(null);
   }
 
-  @Override
   public void run() {
+    refreshSerialList();
+    // Initialize the libusb context
+    int result = LibUsb.init(null);
+    if (result != LibUsb.SUCCESS)
+    {
+      throw new LibUsbException("Unable to initialize libusb", result);
+    }
+
+    // Check if hotplug is available
+    if (!LibUsb.hasCapability(LibUsb.CAP_HAS_HOTPLUG))
+    {
+      System.err.println("libusb doesn't support hotplug on this system");
+      System.exit(1);
+    }
+
+    // Start the event handling thread
+    thread.start();
+
+    // Register the hotplug callback
+    result = LibUsb.hotplugRegisterCallback(null,
+      LibUsb.HOTPLUG_EVENT_DEVICE_ARRIVED
+        | LibUsb.HOTPLUG_EVENT_DEVICE_LEFT,
+      LibUsb.HOTPLUG_ENUMERATE,
+      LibUsb.HOTPLUG_MATCH_ANY,
+      LibUsb.HOTPLUG_MATCH_ANY,
+      LibUsb.HOTPLUG_MATCH_ANY,
+      new Callback(), null, callbackHandle);
+    if (result != LibUsb.SUCCESS)
+    {
+      throw new LibUsbException("Unable to register hotplug callback",
+        result);
+    }
+  }
+
+  public void refreshSerialList() {
     while (BaseNoGui.packages == null) {
       try {
         Thread.sleep(1000);
