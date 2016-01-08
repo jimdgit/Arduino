@@ -34,6 +34,7 @@
     <cp>%EXEDIR%/lib/usb-api-1.0.2.jar</cp>
     <cp>%EXEDIR%/lib/usb4java-1.2.0.jar</cp>
     <cp>%EXEDIR%/lib/usb4java-javax-1.2.0.jar</cp>
+    <cp>%EXEDIR%/lib/javax.usb.properties</cp>
   </classPath>
   <jre>
     <path>java</path>
