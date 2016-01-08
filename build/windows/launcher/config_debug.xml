@@ -30,6 +30,10 @@
     <cp>%EXEDIR%/lib/jssc-2.8.0.jar</cp>
     <cp>%EXEDIR%/lib/pde.jar</cp>
     <cp>%EXEDIR%/lib/rsyntaxtextarea-2.5.8.1+arduino.jar</cp>
+    <cp>%EXEDIR%/lib/libusb4java-1.2.0-windows-x86.jar</cp>
+    <cp>%EXEDIR%/lib/usb-api-1.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/usb4java-1.2.0.jar</cp>
+    <cp>%EXEDIR%/lib/usb4java-javax-1.2.0.jar</cp>
   </classPath>
   <jre>
     <path>java</path>
