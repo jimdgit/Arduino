@@ -40,10 +40,12 @@ import java.util.*;
 import javax.usb.*;
 import javax.usb.event.*;
 import org.usb4java.javax.Services;
+import processing.app.helpers.OSUtils;
 
 public class SerialBoardsLister extends Thread  implements UsbServicesListener {
 
   private final SerialDiscovery serialDiscovery;
+  private List<String> previousPorts = new LinkedList<>();
 
   public SerialBoardsLister(SerialDiscovery serialDiscovery) {
     this.serialDiscovery = serialDiscovery;
@@ -59,7 +61,6 @@ public class SerialBoardsLister extends Thread  implements UsbServicesListener {
     refreshSerialList();
   }
 
-
   @Override
   public void run() {
       refreshSerialList();
@@ -70,6 +71,10 @@ public class SerialBoardsLister extends Thread  implements UsbServicesListener {
       // keep thread alive
       while (true) {
         try {
+          if (OSUtils.isWindows()) {
+            // libUSB hotplug unsupported on Windows
+            refreshSerialList();
+          }
           Thread.sleep(1000);
         } catch (InterruptedException e) {
           // noop
@@ -94,6 +99,15 @@ public class SerialBoardsLister extends Thread  implements UsbServicesListener {
     List<BoardPort> boardPorts = new LinkedList<>();
 
     List<String> ports = Serial.list();
+
+    if (OSUtils.isWindows()) {
+      if (previousPorts.equals(ports)) {
+        return;
+      } else {
+        previousPorts.clear();
+        previousPorts.addAll(ports);
+      }
+    }
 
     String devicesListOutput = null;
     if (!ports.isEmpty()) {
