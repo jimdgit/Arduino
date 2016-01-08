@@ -37,8 +37,11 @@ import processing.app.Serial;
 import processing.app.debug.TargetBoard;
 
 import java.util.*;
+import javax.usb.*;
+import javax.usb.event.*;
+import org.usb4java.javax.Services;
 
-public class SerialBoardsLister extends TimerTask {
+public class SerialBoardsLister extends Thread  implements UsbServicesListener {
 
   private final SerialDiscovery serialDiscovery;
 
@@ -46,12 +49,35 @@ public class SerialBoardsLister extends TimerTask {
     this.serialDiscovery = serialDiscovery;
   }
 
-  public void start(Timer timer) {
-    timer.schedule(this, 0, 1000);
+  @Override
+  public void usbDeviceAttached(UsbServicesEvent event) {
+    refreshSerialList();
   }
 
   @Override
+  public void usbDeviceDetached(UsbServicesEvent event) {
+    refreshSerialList();
+  }
+
+
+  @Override
   public void run() {
+      refreshSerialList();
+      try {
+        final UsbServices services = UsbHostManager.getUsbServices();
+        services.addUsbServicesListener(this);
+      } catch (final UsbException e) {}
+      // keep thread alive
+      while (true) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          // noop
+        }
+      }
+    }
+
+  public void refreshSerialList()  {
     while (BaseNoGui.packages == null) {
       try {
         Thread.sleep(1000);
