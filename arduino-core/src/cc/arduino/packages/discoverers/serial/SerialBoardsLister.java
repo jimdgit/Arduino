@@ -41,6 +41,7 @@ import java.util.*;
 public class SerialBoardsLister extends TimerTask {
 
   private final SerialDiscovery serialDiscovery;
+  static List<String> previousPorts = new LinkedList<>();
 
   public SerialBoardsLister(SerialDiscovery serialDiscovery) {
     this.serialDiscovery = serialDiscovery;
@@ -68,6 +69,14 @@ public class SerialBoardsLister extends TimerTask {
     List<BoardPort> boardPorts = new LinkedList<>();
 
     List<String> ports = Serial.list();
+/*
+    if (previousPorts.equals(ports)) {
+       return;
+    } else {
+        previousPorts.clear();
+        previousPorts.addAll(ports);
+    }
+*/
 
     String devicesListOutput = null;
     if (!ports.isEmpty()) {

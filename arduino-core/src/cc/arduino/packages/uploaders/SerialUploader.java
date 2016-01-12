@@ -191,15 +191,13 @@ public class SerialUploader extends Uploader {
           long started = System.currentTimeMillis();
           while (System.currentTimeMillis() - started < 2000) {
             List<String> portList = Serial.list();
-            if (portList.contains(actualUploadPort)) {
-              finalUploadPort = actualUploadPort;
-              break;
-            } else if (portList.contains(userSelectedUploadPort)) {
+            if (portList.contains(userSelectedUploadPort)) {
               finalUploadPort = userSelectedUploadPort;
               break;
             }
             Thread.sleep(250);
           }
+          finalUploadPort = actualUploadPort;
         }
       } catch (InterruptedException ex) {
         // noop
