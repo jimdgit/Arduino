@@ -44,6 +44,8 @@ import processing.app.helpers.OSUtils;
 import processing.app.helpers.PreferencesMap;
 import processing.app.helpers.StringReplacer;
 
+import cc.arduino.packages.discoverers.SerialDiscovery;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +136,7 @@ public class SerialUploader extends Uploader {
           // Scanning for available ports seems to open the port or
           // otherwise assert DTR, which would cancel the WDT reset if
           // it happened within 250 ms. So we wait until the reset should
-          // have already occured before we start scanning.
+          // have already occurred before we start scanning.
           actualUploadPort = waitForUploadPort(userSelectedUploadPort, before);
         }
       } catch (SerialException e) {
@@ -151,13 +153,11 @@ public class SerialUploader extends Uploader {
       } else {
         prefs.put("serial.port.file", actualUploadPort);
       }
-    }
 
-    BoardPort boardPort = BaseNoGui.getDiscoveryManager().find(PreferencesData.get("serial.port"));
-    try {
-      prefs.put("serial.port.iserial", boardPort.getPrefs().get("iserial"));
-    } catch (Exception e) {
-      // if serial port does not contain an iserial field
+      // retrigger a discovery
+      BaseNoGui.getDiscoveryManager().getSerialDiscoverer().setUploadInProgress(true);
+      BaseNoGui.getDiscoveryManager().getSerialDiscoverer().forceRefresh();
+      Thread.sleep(100);
     }
 
     prefs.put("build.path", buildPath);
@@ -178,6 +178,8 @@ public class SerialUploader extends Uploader {
     } catch (Exception e) {
       throw new RunnerException(e);
     }
+
+    BaseNoGui.getDiscoveryManager().getSerialDiscoverer().setUploadInProgress(false);
 
     String finalUploadPort = null;
     if (uploadResult && doTouch) {
@@ -211,6 +213,7 @@ public class SerialUploader extends Uploader {
       finalUploadPort = userSelectedUploadPort;
     }
     BaseNoGui.selectSerialPort(finalUploadPort);
+
     return uploadResult;
   }
 

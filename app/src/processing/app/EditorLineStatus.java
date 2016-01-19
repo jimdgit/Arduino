@@ -30,7 +30,6 @@ import processing.app.helpers.OSUtils;
 import processing.app.helpers.PreferencesMap;
 import static processing.app.I18n.tr;
 
-
 /**
  * Li'l status bar fella that shows the line number.
  */
@@ -49,6 +48,7 @@ public class EditorLineStatus extends JComponent {
   String text = "";
   String name = "";
   String serialport = "";
+  String serialnumber = "";
 
 
   public EditorLineStatus() {
@@ -96,6 +96,9 @@ public class EditorLineStatus extends JComponent {
         setBoardName("-");
       setSerialPort(PreferencesData.get("serial.port"));
     }
+
+    setSerialNumber(PreferencesData.get("serial.port.iserial"));
+
     g.setColor(background);
     Dimension size = getSize();
     g.fillRect(0, 0, size.width, size.height);
@@ -106,7 +109,7 @@ public class EditorLineStatus extends JComponent {
     g.drawString(text, 6, baseline);
 
     g.setColor(messageForeground);
-    String tmp = I18n.format(tr("{0} on {1}"), name, serialport);
+    String tmp = I18n.format(tr("{0} on {1} ~{2}~"), name, serialport, serialnumber);
     
     Rectangle2D bounds = g.getFontMetrics().getStringBounds(tmp, null);
     
@@ -123,6 +126,10 @@ public class EditorLineStatus extends JComponent {
 
   public void setSerialPort(String serialport) {
     this.serialport = serialport;
+  }
+
+  public void setSerialNumber(String serialnumber) {
+    this.serialnumber = serialnumber;
   }
 
   public Dimension getPreferredSize() {

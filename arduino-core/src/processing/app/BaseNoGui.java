@@ -33,6 +33,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import cc.arduino.packages.BoardPort;
+
 import static processing.app.I18n.tr;
 import static processing.app.helpers.filefilters.OnlyDirs.ONLY_DIRS;
 
@@ -654,7 +656,7 @@ public class BaseNoGui {
     } catch (Exception e) {
       showError(tr("Problem Setting the Platform"),
                 tr("An unknown error occurred while trying to load\n" +
-                  "platform-specific code for your machine."), e);
+                        "platform-specific code for your machine."), e);
     }
   }
 
@@ -1085,7 +1087,7 @@ public class BaseNoGui {
    */
   static public void saveFile(String str, File file) throws IOException {
     File temp = File.createTempFile(file.getName(), null, file.getParentFile());
-    PApplet.saveStrings(temp, new String[] { str });
+    PApplet.saveStrings(temp, new String[]{str});
     if (file.exists()) {
       boolean result = file.delete();
       if (!result) {
@@ -1119,6 +1121,8 @@ public class BaseNoGui {
 
   public static void selectSerialPort(String port) {
     PreferencesData.set("serial.port", port);
+    BoardPort boardPort = getDiscoveryManager().find(port, true);
+    PreferencesData.set("serial.port.iserial", boardPort.getPrefs().get("iserial"));
     String portFile = port;
     if (port.startsWith("/dev/")) {
       portFile = portFile.substring(5);
