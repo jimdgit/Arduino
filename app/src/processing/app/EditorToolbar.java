@@ -337,7 +337,11 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
 
     switch (sel) {
       case RUN:
-        editor.handleRun(false, editor.presentHandler, editor.runHandler);
+        System.out.println("RUN");
+        if (!editor.avoidMultipleOperations) {
+          editor.handleRun(false, editor.presentHandler, editor.runHandler);
+          editor.avoidMultipleOperations = true;
+        }
         break;
 
 //    case STOP:
@@ -345,11 +349,13 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
 //      break;
 //
       case OPEN:
+        System.out.println("OPEN");
         popup = menu.getPopupMenu();
         popup.show(EditorToolbar.this, x, y);
         break;
 
       case NEW:
+        System.out.println("NEW");
         try {
           editor.base.handleNew();
         } catch (Exception e1) {
@@ -358,6 +364,7 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
         break;
 
       case SAVE:
+        System.out.println("SAVE");
         if (e.isShiftDown()) {
           editor.handleSaveAs();
         } else {
@@ -366,10 +373,15 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
         break;
 
       case EXPORT:
-        editor.handleExport(e.isShiftDown());
+        System.out.println("EXPORT");
+        if (!editor.avoidMultipleOperations) {
+          editor.handleExport(e.isShiftDown());
+          editor.avoidMultipleOperations = true;
+        }
         break;
 
       case SERIAL:
+        System.out.println("SERIAL");
         editor.handleSerial();
         break;
     }

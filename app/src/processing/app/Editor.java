@@ -143,6 +143,8 @@ public class Editor extends JFrame implements RunnerListener {
 
   private int numTools = 0;
 
+  public boolean avoidMultipleOperations = false;
+
   private final EditorToolbar toolbar;
   // these menus are shared so that they needn't be rebuilt for all windows
   // each time a sketch is created, renamed, or moved.
@@ -2008,6 +2010,7 @@ public class Editor extends JFrame implements RunnerListener {
 
       status.unprogress();
       toolbar.deactivateRun();
+      avoidMultipleOperations = false;
     }
   }
 
@@ -2435,6 +2438,7 @@ public class Editor extends JFrame implements RunnerListener {
         e.printStackTrace();
       } finally {
         populatePortMenu();
+        avoidMultipleOperations = false;
       }
       status.unprogress();
       uploading = false;
@@ -2529,6 +2533,7 @@ public class Editor extends JFrame implements RunnerListener {
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
+        avoidMultipleOperations = false;
         populatePortMenu();
       }
       status.unprogress();
@@ -2587,7 +2592,7 @@ public class Editor extends JFrame implements RunnerListener {
 
     // If currently uploading, disable the monitor (it will be later
     // enabled when done uploading)
-    if (uploading) {
+    if (uploading || avoidMultipleOperations) {
       try {
         serialMonitor.suspend();
       } catch (Exception e) {
@@ -2611,8 +2616,10 @@ public class Editor extends JFrame implements RunnerListener {
       }
 
       try {
-        serialMonitor.open();
         serialMonitor.setVisible(true);
+        if (!avoidMultipleOperations) {
+          serialMonitor.open();
+        }
         success = true;
       } catch (ConnectException e) {
         statusError(tr("Unable to connect: is the sketch using the bridge?"));

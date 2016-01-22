@@ -137,6 +137,7 @@ public class SerialBoardsLister extends TimerTask {
           }
           System.out.println(iserial);
           if (uploadInProgress && oldUploadBoardPort!=null) {
+            System.out.println("setting serial" + iserial + " to " + oldUploadBoardPort.getAddress());
             oldUploadBoardPort.getPrefs().put("iserial", iserial);
           }
 

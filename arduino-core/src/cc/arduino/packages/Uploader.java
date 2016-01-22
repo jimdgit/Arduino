@@ -44,6 +44,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static processing.app.I18n.tr;
 
@@ -124,8 +125,11 @@ public abstract class Uploader implements MessageConsumer {
       new MessageSiphon(process.getInputStream(), this, 100);
       new MessageSiphon(process.getErrorStream(), this, 100);
 
-      // wait for the process to finish.
-      result = process.waitFor();
+      // wait for the process to finish, but not forever
+      if (!process.waitFor(1, TimeUnit.MINUTES)) {
+        process.destroyForcibly();
+      }
+      result = process.exitValue();
     } catch (Exception e) {
       e.printStackTrace();
     }

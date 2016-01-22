@@ -156,6 +156,7 @@ public class SerialUploader extends Uploader {
 
       // retrigger a discovery
       BaseNoGui.getDiscoveryManager().getSerialDiscoverer().setUploadInProgress(true);
+      Thread.sleep(100);
       BaseNoGui.getDiscoveryManager().getSerialDiscoverer().forceRefresh();
       Thread.sleep(100);
     }
