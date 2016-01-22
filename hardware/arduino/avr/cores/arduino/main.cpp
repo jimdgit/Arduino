@@ -30,6 +30,8 @@ void initVariant() { }
 void setupUSB() __attribute__((weak));
 void setupUSB() { }
 
+bool _updatedLUFAbootloader = false;
+
 int main(void)
 {
 	init();
@@ -37,6 +39,15 @@ int main(void)
 	initVariant();
 
 #if defined(USBCON)
+
+#ifndef NEW_LUFA_SIGNATURE
+#define NEW_LUFA_SIGNATURE 0xDCFB
+#endif
+
+  if (pgm_read_word(FLASHEND - 1) == NEW_LUFA_SIGNATURE) {
+    _updatedLUFAbootloader = true;
+  }
+
 	USBDevice.attach();
 #endif
 	

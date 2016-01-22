@@ -109,10 +109,6 @@ bool CDC_Setup(USBSetup& setup)
 #define MAGIC_KEY_POS 0x0800
 #endif
 
-#ifndef NEW_LUFA_SIGNATURE
-#define NEW_LUFA_SIGNATURE 0xDCFB
-#endif
-
 			uint16_t magic_key_pos = MAGIC_KEY_POS;
 
 // If we don't use the new RAMEND directly, check manually if we have a newer bootloader.
@@ -121,7 +117,7 @@ bool CDC_Setup(USBSetup& setup)
 #if MAGIC_KEY_POS != (RAMEND-1)
 			// For future boards save the key in the inproblematic RAMEND
 			// Which is reserved for the main() return value (which will never return)
-			if (pgm_read_word(FLASHEND - 1) == NEW_LUFA_SIGNATURE) {
+			if (_updatedLUFAbootloader) {
 				// horray, we got a new bootloader!
 				magic_key_pos = (RAMEND-1);
 			}
