@@ -753,12 +753,9 @@
 
     <move file="linux/work" tofile="linux/arduino-${version}" />
 
-    <exec executable="tar" dir="linux" failonerror="true">
-      <arg value="--lzma"/>
+    <exec executable="bash" dir="linux" failonerror="true">
       <arg value="-c"/>
-      <arg value="-f"/>
-      <arg value="arduino-${full-version}.tar.xz"/>
-      <arg value="arduino-${version}"/>
+      <arg value="tar -cf - arduino-${version} | pxz -9 -c - > arduino-${full-version}.tar.xz"/>
     </exec>
 
     <move file="linux/arduino-${version}" tofile="linux/work" />
