@@ -2554,7 +2554,7 @@ public class Editor extends JFrame implements RunnerListener {
       if(serialPlotter.isClosed()) {
         serialPlotter = null;
       } else {
-        statusError(I18n.format("Serial monitor not available while plotter is open"));
+        statusError(tr("Serial monitor not available while plotter is open"));
         return;
       }
     }
@@ -2583,7 +2583,7 @@ public class Editor extends JFrame implements RunnerListener {
     BoardPort port = Base.getDiscoveryManager().find(PreferencesData.get("serial.port"));
 
     if (port == null) {
-      statusError(I18n.format("Board at {0} is not available", PreferencesData.get("serial.port")));
+      statusError(I18n.format(tr("Board at {0} is not available"), PreferencesData.get("serial.port")));
       return;
     }
 
@@ -2653,7 +2653,7 @@ public class Editor extends JFrame implements RunnerListener {
       if(serialMonitor.isClosed()) {
         serialMonitor = null;
       } else {
-        statusError(I18n.format("Plotter not available while serial monitor is open"));
+        statusError(tr("Plotter not available while serial monitor is open"));
         return;
       }
     }
@@ -2681,7 +2681,7 @@ public class Editor extends JFrame implements RunnerListener {
     BoardPort port = Base.getDiscoveryManager().find(PreferencesData.get("serial.port"));
 
     if (port == null) {
-      statusError(I18n.format("Board at {0} is not available", PreferencesData.get("serial.port")));
+      statusError(I18n.format(tr("Board at {0} is not available"), PreferencesData.get("serial.port")));
       return;
     }
 
