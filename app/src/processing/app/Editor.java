@@ -197,7 +197,7 @@ public class Editor extends JFrame implements RunnerListener {
   private Runnable stopHandler;
   Runnable exportHandler;
   private Runnable exportAppHandler;
-
+  private Runnable timeoutUploadHandler;
 
   public Editor(Base ibase, File file, int[] storedLocation, int[] defaultLocation, Platform platform) throws Exception {
     super("Arduino");
@@ -841,6 +841,9 @@ public class Editor extends JFrame implements RunnerListener {
       portMenu = new JMenu(tr("Port"));
     populatePortMenu();
     toolsMenu.add(portMenu);
+    item = new JMenuItem(tr("Get Board Info"));
+    item.addActionListener(e -> handleBoardInfo());
+    toolsMenu.add(item);
     toolsMenu.addSeparator();
 
     base.rebuildProgrammerMenu();
@@ -1679,6 +1682,7 @@ public class Editor extends JFrame implements RunnerListener {
     stopHandler = new DefaultStopHandler();
     exportHandler = new DefaultExportHandler();
     exportAppHandler = new DefaultExportAppHandler();
+    timeoutUploadHandler = new TimeoutUploadHandler();
   }
 
 
@@ -2399,6 +2403,7 @@ public class Editor extends JFrame implements RunnerListener {
     console.clear();
     status.progress(tr("Uploading to I/O Board..."));
 
+    new Thread(timeoutUploadHandler).start();
     new Thread(usingProgrammer ? exportAppHandler : exportHandler).start();
   }
 
@@ -2548,6 +2553,20 @@ public class Editor extends JFrame implements RunnerListener {
     }
   }
 
+  class TimeoutUploadHandler implements Runnable {
+
+    public void run() {
+      try {
+        //10 seconds, than reactivate upload functionality and let the programmer pid being killed
+        Thread.sleep(1000 * 10);
+        if (uploading) {
+          avoidMultipleOperations = false;
+        }
+      } catch (InterruptedException e) {
+          // noop
+      }
+    }
+  }
 
   public void handleSerial() {
     if(serialPlotter != null) {
@@ -2766,6 +2785,52 @@ public class Editor extends JFrame implements RunnerListener {
     }).start();
   }
 
+  private void handleBoardInfo() {
+    console.clear();
+
+    String selectedPort = PreferencesData.get("serial.port");
+    List<BoardPort> ports = Base.getDiscoveryManager().discovery();
+
+    String label = "";
+    String vid = "";
+    String pid = "";
+    String iserial = "";
+    boolean found = false;
+
+    for (BoardPort port : ports) {
+      if (port.getAddress().equals(selectedPort)) {
+        label = port.getBoardName();
+        vid = port.getVID();
+        pid = port.getPID();
+        iserial = port.getISerial();
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      statusNotice(tr("Please select a port to obtain board info"));
+      return;
+    }
+
+    if (vid == null || vid.equals("") || vid.equals("0000")) {
+      statusNotice(tr("Native serial port, can't obtain info"));
+      return;
+    }
+
+    if (iserial == null || iserial.equals("")) {
+      iserial = tr("Upload any sketch to obtain it");
+    }
+
+    if (label == null) {
+      label = tr("Unknown board");
+    }
+
+    String infos = I18n.format("BN: {0}\nVID: {1}\nPID: {2}\nSN: {3}", label, vid, pid, iserial);
+    JTextArea textArea = new JTextArea(infos);
+
+    JOptionPane.showMessageDialog(this, textArea, tr("Board Info"), JOptionPane.PLAIN_MESSAGE);
+  }
 
   /**
    * Handler for File &rarr; Page Setup.

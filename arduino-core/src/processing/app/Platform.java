@@ -130,7 +130,6 @@ public class Platform {
     }
   }
 
-
   public boolean openFolderAvailable() {
     return PreferencesData.get("launcher") != null;
   }

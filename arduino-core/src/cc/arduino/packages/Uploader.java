@@ -103,6 +103,9 @@ public abstract class Uploader implements MessageConsumer {
     return null;
   }
 
+  // static field for last executed programmer process ID
+  static protected Process programmerPid;
+
   protected boolean executeUploadCommand(Collection<String> command) throws Exception {
     return executeUploadCommand(command.toArray(new String[command.size()]));
   }
@@ -122,11 +125,13 @@ public abstract class Uploader implements MessageConsumer {
         System.out.println();
       }
       Process process = ProcessUtils.exec(command);
+      programmerPid = process;
       new MessageSiphon(process.getInputStream(), this, 100);
       new MessageSiphon(process.getErrorStream(), this, 100);
 
       // wait for the process to finish, but not forever
-      if (!process.waitFor(1, TimeUnit.MINUTES)) {
+      // kill the flasher process after 2 minutes to avoid 100% cpu spinning
+      if (!process.waitFor(2, TimeUnit.MINUTES)) {
         process.destroyForcibly();
       }
       result = process.exitValue();

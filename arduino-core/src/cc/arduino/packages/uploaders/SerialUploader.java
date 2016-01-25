@@ -80,6 +80,11 @@ public class SerialUploader extends Uploader {
     }
     prefs.putAll(targetPlatform.getTool(tool));
 
+    if (programmerPid != null && programmerPid.isAlive()) {
+      // kill the previous programmer
+      programmerPid.destroyForcibly();
+    }
+
     // if no protocol is specified for this board, assume it lacks a 
     // bootloader and upload using the selected programmer.
     if (usingProgrammer || prefs.get("upload.protocol") == null) {

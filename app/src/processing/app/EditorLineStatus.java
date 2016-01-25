@@ -97,8 +97,6 @@ public class EditorLineStatus extends JComponent {
       setSerialPort(PreferencesData.get("serial.port"));
     }
 
-    setSerialNumber(PreferencesData.get("serial.port.iserial"));
-
     g.setColor(background);
     Dimension size = getSize();
     g.fillRect(0, 0, size.width, size.height);
@@ -109,7 +107,7 @@ public class EditorLineStatus extends JComponent {
     g.drawString(text, 6, baseline);
 
     g.setColor(messageForeground);
-    String tmp = I18n.format(tr("{0} on {1} ~{2}~"), name, serialport, serialnumber);
+    String tmp = I18n.format(tr("{0} on {1}"), name, serialport);
     
     Rectangle2D bounds = g.getFontMetrics().getStringBounds(tmp, null);
     

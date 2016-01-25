@@ -115,6 +115,7 @@ bool CDC_Setup(USBSetup& setup)
 // This is used to keep compatible with the old leonardo bootloaders.
 // You are still able to set the magic key position manually to RAMEND-1 to save a few bytes for this check.
 #if MAGIC_KEY_POS != (RAMEND-1)
+			extern bool _updatedLUFAbootloader;
 			// For future boards save the key in the inproblematic RAMEND
 			// Which is reserved for the main() return value (which will never return)
 			if (_updatedLUFAbootloader) {

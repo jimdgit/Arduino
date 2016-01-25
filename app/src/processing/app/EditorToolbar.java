@@ -374,6 +374,7 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
 
       case EXPORT:
         System.out.println("EXPORT");
+        // launch a timeout timer which can reenable to upload button functionality an
         if (!editor.avoidMultipleOperations) {
           editor.handleExport(e.isShiftDown());
           editor.avoidMultipleOperations = true;
@@ -386,7 +387,6 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
         break;
     }
   }
-
 
   public void mouseClicked(MouseEvent e) {
   }

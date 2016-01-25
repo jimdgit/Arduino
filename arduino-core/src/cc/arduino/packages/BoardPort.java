@@ -101,11 +101,14 @@ public class BoardPort {
   }
 
   public String getPID() {
-    return vid;
+    return pid;
   }
 
   public void setISerial(String iserial) {
     this.iserial = iserial;
+  }
+  public String getISerial() {
+    return iserial;
   }
 
   @Override
