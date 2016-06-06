@@ -100,7 +100,7 @@
   <property name="BUNDLED_CORE_VERSION" value="git"/>
   <property name="BUNDLED_CORE_ARCHIVE" value="none"/>
   <property name="BUNDLED_CORE_SHA256" value="none"/>
-  <property name="BUNDLED_CORE_BASEURL" value="${ARDUINO_CORE_BASE_URL}"/>
+  <property name="BUNDLED_CORE_URL" value="${ARDUINO_CORE_BASE_URL}/${BUNDLED_CORE_ARCHIVE}"/>
 
   <property name="BUNDLED_COMPILER" value="avr-gcc"/>
   <property name="BUNDLED_COMPILER_VERSION" value="4.8.1-arduino5"/>
@@ -298,7 +298,7 @@
     <antcall target="core-bundle">
       <param name="unpack_target" value="untar-sha256"/>
       <param name="archive_file" value="${BUNDLED_CORE_ARCHIVE}"/>
-      <param name="archive_url" value="${BUNDLED_CORE_BASEURL}/${BUNDLED_CORE_ARCHIVE}"/>
+      <param name="archive_url" value="${BUNDLED_CORE_URL}"/>
       <param name="arch_name" value="${BUNDLED_CORE}"/>
       <param name="arch_maintainer" value="${BUNDLED_CORE_MAINTAINER}"/>
       <param name="sha256" value="${BUNDLED_CORE_SHA256}"/>
@@ -1204,7 +1204,7 @@
 
   <target name="windows-build-avr-toolchain">
     <antcall target="toolchain-bundle">
-      <param name="unpack_target" value="untar-sha256"/>
+      <param name="unpack_target" value="unzip-sha256"/>
       <param name="arch_name" value="${BUNDLED_CORE}"/>
       <param name="core_maintainer" value="${BUNDLED_CORE_MAINTAINER}"/>
       <param name="gcc_name" value="${BUNDLED_COMPILER}"/>
