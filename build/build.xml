@@ -296,7 +296,7 @@
     <antcall target="copy-hardware-folder">
     </antcall>
     <antcall target="core-bundle">
-      <param name="unpack_target" value="untar-sha256"/>
+      <param name="unpack_target" value="untar-unzip-sha256"/>
       <param name="archive_file" value="${BUNDLED_CORE_ARCHIVE}"/>
       <param name="archive_url" value="${BUNDLED_CORE_URL}"/>
       <param name="arch_name" value="${BUNDLED_CORE}"/>
@@ -1004,6 +1004,24 @@
     </exec>
   </target>
 
+  <target name="untar-sha256-enable" if="${isNotZip}">
+    <antcall target="untar-sha256"/>
+  </target>
+
+  <target name="unzip-sha256-enable" unless="${isNotZip}">
+    <antcall target="unzip-sha256"/>
+  </target>
+
+  <target name="untar-unzip-sha256">
+    <!-- get file extension -->
+    <basename property="filename" file="${archive_file}" suffix=".zip"/>
+    <condition property="isNotZip">
+      <equals arg1="${filename}" arg2="${archive_file}"/>
+    </condition>
+    <antcall target="untar-sha256-enable"/>
+    <antcall target="unzip-sha256-enable"/>
+  </target>
+
   <target name="unzip-with-ant-task" depends="untar-unzip-checksum" unless="${archive_file}_installed">
     <echo>Unzipping ${archive_file} into folder ${dest_folder}</echo>
     <mkdir dir="${dest_folder}" />
@@ -1288,15 +1306,25 @@
 
   <target name="core-bundle" unless="avr.git.bundled">
     <!-- Unzip Core tools -->
-    <mkdir dir="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}"/>
+    <!--<mkdir dir="${staging_folder}/work/${staging_hardware_folder}/tmp/${arch_maintainer}/${arch_name}"/> -->
 
     <antcall target="${unpack_target}">
       <param name="archive_file" value="${staging_folder}/${archive_file}"/>
       <param name="archive_url" value="${archive_url}"/>
-      <param name="final_folder" value="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}"/>
-      <param name="dest_folder" value="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}"/>
+      <param name="final_folder" value="${staging_folder}/work/${staging_hardware_folder}/tmp/core/${BUNDLED_CORE_VERSION}"/>
+      <param name="dest_folder" value="${staging_folder}/work/${staging_hardware_folder}/tmp/core/"/>
       <param name="sha256" value="${sha256}"/>
     </antcall>
+
+    <!-- discard one folder level while copying -->
+    <dirset id="dir_list" dir="${staging_folder}/work/${staging_hardware_folder}/tmp/core/">
+      <depth min="0" max="0"/>
+    </dirset>
+    <pathconvert property="dir_names_list" refid="dir_list" pathsep=","/>
+    <echo message="${dir_names_list}" />
+    <move file="${dir_names_list}" tofile="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}/"/>
+
+    <delete dir="${staging_folder}/work/${staging_hardware_folder}/tmp/core/${BUNDLED_CORE_VERSION}/"/>
   </target>
 
   <target name="toolchain-bundle" unless="light_bundle">
