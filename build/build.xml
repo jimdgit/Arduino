@@ -1325,6 +1325,30 @@
     <move file="${dir_names_list}" tofile="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}/"/>
 
     <delete dir="${staging_folder}/work/${staging_hardware_folder}/tmp/core/${BUNDLED_CORE_VERSION}/"/>
+
+    <!-- get core version from platform.txt -->
+    <loadfile srcfile="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}/platform.txt" property="revision.core.platform">
+      <filterchain>
+        <tokenfilter>
+          <linetokenizer />
+          <containsregex pattern="version="/>
+          <replaceregex pattern="version=(.*)" flags="g" replace="\1"/>
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+
+    <echo message="Core version in platform.txt is ${revision.core.platform}"/>
+
+    <condition property="revision.core.ok">
+        <equals arg1="${BUNDLED_CORE_VERSION}" arg2="${revision.core.platform}"/>
+    </condition>
+
+    <antcall target="replace-bundled-core-version"/>
+  </target>
+
+  <target name="replace-bundled-core-version" unless="revision.core.ok">
+    <echo message="replacing core version ${revision.core.platform} with ${BUNDLED_CORE_VERSION}" />
+    <replace file="${staging_folder}/work/${staging_hardware_folder}/${arch_maintainer}/${arch_name}/platform.txt" token="version=${revision.core.platform}" value="version=${BUNDLED_CORE_VERSION}"/>
   </target>
 
   <target name="toolchain-bundle" unless="light_bundle">
