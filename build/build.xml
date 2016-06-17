@@ -316,7 +316,7 @@
   <!-- - - - - - - - - -->
   <!-- Revision check  -->
   <!-- - - - - - - - - -->
-  <target name="revision-check" depends="package-library-index-json-bundle" if="avr.git.bundled">
+  <target name="revision-core-check" depends="package-library-index-json-bundle" if="avr.git.bundled">
 
     <!-- figure out the AVR core version number in platform.txt -->
     <loadfile srcfile="../hardware/arduino/avr/platform.txt" property="revision.avr.platform">
@@ -354,6 +354,9 @@
       Mismatching versions for bundled AVR core and package_index.json.
       Please check your platform.txt and package_index.json.
     </fail>
+  </target>
+
+  <target name="revision-check" depends="package-library-index-json-bundle">
 
     <!-- figure out the IDE version number -->
     <loadfile srcfile="shared/revisions.txt" property="revision">
@@ -385,6 +388,8 @@
     </loadfile>
     <echo message="Latest revision detected in shared/revision.txt is: ${revision}" />
     <echo message="                     Revision in BaseNoGui.java is: ${revision.base}" />
+
+    <antcall target="revision-core-check"/>
   </target>
 
   <!-- - - - - - - - -->
