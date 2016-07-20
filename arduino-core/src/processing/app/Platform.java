@@ -38,6 +38,18 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import java.net.URL;
+import java.net.URI;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.net.MalformedURLException;
+
 import static processing.app.I18n.tr;
 
 
@@ -179,6 +191,36 @@ public class Platform {
       list.add(port.split("_")[0]);
     }
     return list;
+  }
+
+  public class BoardCloudAPIid {
+    public BoardCloudAPIid() {   }
+    private String _name;
+    public String getName() { return _name; }
+  }
+
+  public synchronized void getBoardWithMatchingVidPidFromCloud(String vid, String pid) {
+    // this method is less useful in Windows < WIN10 since you need drivers to be already installed
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    URLConnection con;
+    System.out.println("getting board name for " + vid + " " + pid);
+    try {
+      URL jsonUrl = new URL("http", "api-builder.arduino.cc", 80, "/builder/boards/0x"+vid+"/0x"+pid);
+      URLConnection connection = jsonUrl.openConnection();
+      connection.connect();
+      HttpURLConnection httpConnection = (HttpURLConnection) connection;
+      int code = httpConnection.getResponseCode();
+      if (code == 404) {
+        return;
+      }
+      InputStream is = httpConnection.getInputStream();
+      BoardCloudAPIid user = mapper.readValue(is, BoardCloudAPIid.class);
+      System.out.println(user.getName());
+      is.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   public synchronized Map<String, Object> resolveDeviceByVendorIdProductId(String serial, Map<String, TargetPackage> packages) {
