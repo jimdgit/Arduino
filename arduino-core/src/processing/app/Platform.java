@@ -193,10 +193,17 @@ public class Platform {
     return list;
   }
 
-  public class BoardCloudAPIid {
+  public static class BoardCloudAPIid {
     public BoardCloudAPIid() {   }
-    private String _name;
-    public String getName() { return _name; }
+    private String name;
+    private String architecture;
+    private String id;
+    public String getName() { return name; }
+    public String getArchitecture() { return architecture; }
+    public String getId() { return id; }
+    public void setName(String tmp) { name = tmp; }
+    public void setArchitecture(String tmp) { architecture = tmp; }
+    public void setId(String tmp) { id = tmp; }
   }
 
   public synchronized void getBoardWithMatchingVidPidFromCloud(String vid, String pid) {
@@ -204,7 +211,6 @@ public class Platform {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     URLConnection con;
-    System.out.println("getting board name for " + vid + " " + pid);
     try {
       URL jsonUrl = new URL("http", "api-builder.arduino.cc", 80, "/builder/boards/0x"+vid+"/0x"+pid);
       URLConnection connection = jsonUrl.openConnection();
@@ -215,8 +221,11 @@ public class Platform {
         return;
       }
       InputStream is = httpConnection.getInputStream();
-      BoardCloudAPIid user = mapper.readValue(is, BoardCloudAPIid.class);
-      System.out.println(user.getName());
+      BoardCloudAPIid board = mapper.readValue(is, BoardCloudAPIid.class);
+      // Launch a popup with a link to boardmanager#board.getName()
+      // replace spaces with &
+      Editor ed = base.getActiveEditor();
+      notificationPopup = new NotificationPopup(ed, hyperlinkListener, text);
       is.close();
     } catch (Exception e) {
       e.printStackTrace();
