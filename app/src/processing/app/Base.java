@@ -35,6 +35,7 @@ import cc.arduino.files.DeleteFilesOnShutdown;
 import cc.arduino.packages.DiscoveryManager;
 import cc.arduino.view.Event;
 import cc.arduino.view.JMenuUtils;
+import cc.arduino.view.NotificationPopup;
 import cc.arduino.view.SplashScreenHelper;
 
 import org.apache.commons.compress.utils.IOUtils;
@@ -58,6 +59,8 @@ import processing.app.tools.ZipDeflater;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -460,6 +463,9 @@ public class Base {
       }
 
       new Thread(new BuiltInCoreIsNewerCheck(this)).start();
+
+      // Check for boards which need an additional core
+      new Thread(new NewBoardListener(this)).start();
 
       // Check for updates
       if (PreferencesData.getBoolean("update.check")) {
@@ -1265,7 +1271,7 @@ public class Base {
       editor.onBoardOrPortChange();
     }
   }
-
+  
   public void openLibraryManager(final String filterText, String dropdownItem) {
     if (contributionsSelfCheck != null) {
       contributionsSelfCheck.cancel();

@@ -26,6 +26,8 @@ import cc.arduino.packages.BoardPort;
 import processing.app.debug.TargetBoard;
 import processing.app.debug.TargetPackage;
 import processing.app.debug.TargetPlatform;
+import processing.app.helpers.BasicUserNotifier;
+import processing.app.helpers.UserNotifier;
 import processing.app.legacy.PConstants;
 
 import javax.swing.*;
@@ -224,11 +226,12 @@ public class Platform {
       BoardCloudAPIid board = mapper.readValue(is, BoardCloudAPIid.class);
       // Launch a popup with a link to boardmanager#board.getName()
       // replace spaces with &
-      Editor ed = base.getActiveEditor();
-      notificationPopup = new NotificationPopup(ed, hyperlinkListener, text);
-      is.close();
+      String boardNameReplaced = board.getName().replaceAll(" ", "&");
+      String message = I18n.format(tr("{0}Install{1} the package to use your {2}"), "<a href=\"http://boardsmanager/all#"+boardNameReplaced+"\">", "</a>", board.getName());
+      BaseNoGui.setBoardManagerLink(message);
     } catch (Exception e) {
-      e.printStackTrace();
+      // No connection no problem, fail silently
+      //e.printStackTrace();
     }
   }
 
